@@ -26,6 +26,20 @@ Key functions:
 - **`learn_pause(fr, en)`** — In learn mode, display explanation and wait for Enter
 - **`check_dependency(num)`** — Skip if a required earlier test failed
 - **`wait_for_ready(container)`** — Poll until container is RUNNING
+- **`cleanup_container(name)`** — Stop + delete a container safely
+- **`incus_run(cmd...)`** — Wrapper for incus commands (see below)
+
+#### `incus_run` Wrapper
+
+At source time, `_common.sh` creates an executable wrapper at `/tmp/.incus_run_cr380`:
+- **Root (EUID=0)**: the wrapper calls `exec "$@"` directly — root accesses the Incus socket without group membership.
+- **Regular user**: the wrapper calls `exec sg incus-admin -c "$*"` — acquires the `incus-admin` group for socket access.
+
+This avoids `newgrp` (which spawns a new shell and breaks scripts) and is compatible with `timeout` (which requires an executable, not a function). All test files use `incus_run incus ...` instead of bare `incus ...`.
+
+#### Container Race Condition Handling
+
+On fast-booting images (e.g., OpenWRT), `incus launch` may auto-start the container before the test's explicit start, resulting in "Error: already running". Tests in Labs 07, 08, 09, and 11 handle this by treating *"already"* in the output as a success condition.
 
 ### 2. `run-labs.sh` — The Orchestrator
 
@@ -76,10 +90,12 @@ run-labs.sh
                                                     └─→ 11-storage
                                                          └─→ 12-volumes
 
-99-teardown (no dependencies — always runs)
+99-teardown (no dependencies — always runs, cleans up all resources)
 ```
 
 If any test fails, all downstream tests are **SKIPPED** (not failed). This prevents cascading failures and makes it clear where the real problem is.
+
+Lab 99 is independent: it always executes regardless of other test results, and removes all containers, images, storage pools, and network bridges.
 
 ## Adding a New Test
 
@@ -125,9 +141,10 @@ JSON reports in `results/`:
 | Decision | Why |
 |----------|-----|
 | Pure Bash (no BATS/pytest) | Zero dependencies, students can read it |
-| `sg` instead of `newgrp` | `newgrp` spawns a new shell, breaking scripts |
+| `incus_run` wrapper | Avoids `newgrp` (spawns new shell); works with `timeout`; handles root vs regular user |
 | Preseed YAML for init | Reproducible, avoids interactive prompts |
 | `config.env` for all values | Single place to update when images change |
 | Dual mode (validate/learn) | One tool for both teacher validation and student learning |
 | JSON reports | Parseable, diff-able, archivable |
 | Sequential dependencies | Real labs build on each other — tests should too |
+| Proxy device cleanup before add | Incus proxy device state persists; remove old device first to avoid conflicts |

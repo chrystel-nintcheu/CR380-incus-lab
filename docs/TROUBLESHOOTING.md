@@ -234,3 +234,47 @@ If no solution works, contact your teacher with:
 2. La sortie de la commande qui échoue
 3. La version d'Ubuntu (`lsb_release -a`)
 4. L'espace disque disponible (`df -h /`)
+
+---
+
+## Problèmes avancés / Advanced Issues
+
+### 13. Interface bridge persistante après désinstallation / Bridge interface persists after uninstall
+
+**Cause**: Les interfaces Linux bridge survivent à la désinstallation du paquet.
+Linux bridge interfaces persist across package reinstalls.
+
+**Solution**:
+```bash
+sudo ip link set cr380incusbr0 down 2>/dev/null || true
+sudo ip link delete cr380incusbr0 2>/dev/null || true
+# Puis réinitialiser / Then reinitialize
+sudo ./run-labs.sh --reset 04
+```
+
+---
+
+### 14. Commande introuvable après suppression du paquet / Command still found after package removal
+
+**Cause**: Le shell met en cache les chemins des binaires dans une table de hachage.
+The shell caches binary paths in a hash table.
+
+**Solution**:
+```bash
+hash -r        # Vider le cache (Bash/Zsh) / Clear cache (Bash/Zsh)
+which incus    # Devrait retourner "not found" / Should return "not found"
+```
+
+---
+
+### 15. "Error: already running" lors du lancement d'un conteneur / Container "already running" on launch
+
+**Cause**: Sur les images à démarrage rapide (ex: OpenWRT), `incus launch` peut démarrer automatiquement le conteneur avant la commande explicite de démarrage.
+On fast-booting images (e.g., OpenWRT), `incus launch` may auto-start the container before the explicit start command.
+
+**Solution**: Ce comportement est normal et géré par le framework de test. Si vous voyez cette erreur en mode manuel :
+This is normal and handled by the test framework. If you see this error manually:
+```bash
+# Le conteneur est déjà en cours d'exécution / Container is already running
+incus list <container-name>
+```

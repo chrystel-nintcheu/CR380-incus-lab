@@ -89,7 +89,7 @@ sudo ./run-labs.sh --reset 09  # Nettoie et réexécute uniquement le lab 09
 
 | Semaine | Labs | Commande de validation |
 |---------|------|----------------------|
-| 1 | 01-04 (Install + Init) | `sudo ./run-labs.sh --lab 00 && sudo ./run-labs.sh --lab 01 --lab 02 --lab 03 --lab 04` |
-| 2 | 05-07 (Images + Conteneurs) | `sudo ./run-labs.sh --quick --lab 05 --lab 06 --lab 07` |
-| 3 | 08-10 (Ports + Apps + Fichiers) | `sudo ./run-labs.sh --quick --lab 08 --lab 09 --lab 10` |
-| 4 | 11-12 (Stockage + Volumes) | `sudo ./run-labs.sh --quick --lab 11 --lab 12` |
+| 1 | 00-04 (Install + Init) | `for i in 00 01 02 03 04; do sudo ./run-labs.sh --lab $i; done` |
+| 2 | 05-07 (Images + Conteneurs) | `for i in 05 06 07; do sudo ./run-labs.sh --quick --lab $i; done` |
+| 3 | 08-10 (Ports + Apps + Fichiers) | `for i in 08 09 10; do sudo ./run-labs.sh --quick --lab $i; done` |
+| 4 | 11-12 (Stockage + Volumes) | `for i in 11 12; do sudo ./run-labs.sh --quick --lab $i; done` |

@@ -576,9 +576,9 @@ wait_for_ready() {
 cleanup_container() {
     local name="$1"
     command -v incus &>/dev/null || return 0
-    if incus list --format csv -c n 2>/dev/null | grep -qx "${name}"; then
-        incus stop --force "${name}" 2>/dev/null || true
-        incus delete --force "${name}" 2>/dev/null || true
+    if incus_run incus list --format csv -c n 2>/dev/null | grep -qx "${name}"; then
+        incus_run incus stop --force "${name}" 2>/dev/null || true
+        incus_run incus delete --force "${name}" 2>/dev/null || true
         log "CLEANUP: deleted container ${name}"
     fi
 }
@@ -588,8 +588,8 @@ cleanup_container() {
 cleanup_image() {
     local alias="$1"
     command -v incus &>/dev/null || return 0
-    if incus image list --format csv 2>/dev/null | grep -q "${alias}"; then
-        incus image delete "${alias}" 2>/dev/null || true
+    if incus_run incus image list --format csv 2>/dev/null | grep -q "${alias}"; then
+        incus_run incus image delete "${alias}" 2>/dev/null || true
         log "CLEANUP: deleted image ${alias}"
     fi
 }
@@ -599,15 +599,15 @@ cleanup_image() {
 cleanup_storage() {
     local pool="$1"
     command -v incus &>/dev/null || return 0
-    if incus storage list --format csv 2>/dev/null | grep -q "${pool}"; then
+    if incus_run incus storage list --format csv 2>/dev/null | grep -q "${pool}"; then
         # First delete all volumes in the pool
         local volumes
-        volumes=$(incus storage volume list "${pool}" --format csv 2>/dev/null | grep '^custom,' | cut -d',' -f2 || true)
+        volumes=$(incus_run incus storage volume list "${pool}" --format csv 2>/dev/null | grep '^custom,' | cut -d',' -f2 || true)
         for vol in ${volumes}; do
-            incus storage volume delete "${pool}" "${vol}" 2>/dev/null || true
+            incus_run incus storage volume delete "${pool}" "${vol}" 2>/dev/null || true
             log "CLEANUP: deleted volume ${vol} from pool ${pool}"
         done
-        incus storage delete "${pool}" 2>/dev/null || true
+        incus_run incus storage delete "${pool}" 2>/dev/null || true
         log "CLEANUP: deleted storage pool ${pool}"
     fi
 }
@@ -618,7 +618,7 @@ cleanup_volume() {
     local pool="$1"
     local vol="$2"
     command -v incus &>/dev/null || return 0
-    incus storage volume delete "${pool}" "${vol}" 2>/dev/null || true
+    incus_run incus storage volume delete "${pool}" "${vol}" 2>/dev/null || true
     log "CLEANUP: deleted volume ${vol} from pool ${pool}"
 }
 

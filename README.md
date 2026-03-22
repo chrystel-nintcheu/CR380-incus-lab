@@ -5,10 +5,10 @@
 > **EN**: Automated test suite and interactive tutorials for learning [Incus](https://linuxcontainers.org/incus/) containers as part of the CR380 — *Introduction to Containers* course at Polytechnique Montréal.
 
 Incus est un gestionnaire de conteneurs et de machines virtuelles système.
-Ce dépôt contient **13 labs progressifs** qui couvrent l'installation, la configuration, la gestion d'images, le cycle de vie des conteneurs, le réseau, le stockage et les volumes persistants.
+Ce dépôt contient **13 labs progressifs** (00–12) plus un nettoyage final (99) qui couvrent l'installation, la configuration, la gestion d'images, le cycle de vie des conteneurs, le réseau, le stockage et les volumes persistants.
 
 Incus is a system container and virtual machine manager.
-This repository contains **13 progressive labs** covering installation, configuration, image management, container lifecycle, networking, storage, and persistent volumes.
+This repository contains **13 progressive labs** (00–12) plus a final teardown (99) covering installation, configuration, image management, container lifecycle, networking, storage, and persistent volumes.
 
 ---
 
@@ -69,8 +69,12 @@ graph LR
         L09 --> L10 --> L11 --> L12
     end
 
+    L99["99 · Nettoyage final<br/>Final Teardown"]
+    L12 -.->|cleanup| L99
+
     style L00 fill:#e8f5e9
     style L12 fill:#e3f2fd
+    style L99 fill:#ffebee
 ```
 
 ---
