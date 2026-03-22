@@ -1,0 +1,24 @@
+# =============================================================================
+# CR380 - Incus Lab Test Suite — .gitignore
+# =============================================================================
+
+# Test outputs / Résultats de tests
+results/*.json
+logs/*.log
+test-run*.log
+
+# Temporary lab artifacts / Artefacts temporaires des labs
+websrv_dir/
+html/
+html.bkp/
+ml-app/
+index.html
+index.nginx-debian.html
+*.tmp
+
+# OS / IDE
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~

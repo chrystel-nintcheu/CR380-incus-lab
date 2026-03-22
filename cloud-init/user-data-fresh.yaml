@@ -1,0 +1,63 @@
+#cloud-config
+# =============================================================================
+# CR380 - Cloud-Init: Fresh VM (Labs start from scratch)
+# =============================================================================
+#
+# FR: Configuration cloud-init pour une VM propre. Incus n'est PAS installé.
+#     L'étudiant commence tous les labs depuis le début.
+#
+# EN: Cloud-init configuration for a clean VM. Incus is NOT installed.
+#     The student starts all labs from the beginning.
+#
+# Usage (multipass):
+#   multipass launch 24.04 --name cr380-lab --cpus 2 --memory 4G --disk 20G \
+#       --cloud-init cloud-init/user-data-fresh.yaml
+#
+# Usage (Proxmox):
+#   Set this as the cloud-init user-data snippet for a VM template.
+# =============================================================================
+
+# System settings
+hostname: cr380-lab
+manage_etc_hosts: true
+timezone: America/Montreal
+
+# Packages to install
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - curl
+  - wget
+  - tree
+  - vim
+  - jq
+  - members
+  - ca-certificates
+  - gnupg
+  - software-properties-common
+  - apt-transport-https
+  - bash-completion
+
+# Users
+users:
+  - name: student
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    groups: [sudo]
+    lock_passwd: false
+    # CHANGE THIS: Replace with your SSH public key or set a password
+    # ssh_authorized_keys:
+    #   - ssh-rsa AAAA... your-key-here
+
+# Set a default password (change in production!)
+chpasswd:
+  list: |
+    student:cr380lab
+  expire: false
+
+# Run commands after boot
+runcmd:
+  # Clone the lab test suite
+  - su - student -c "git clone https://github.com/CHANGE-ME/incus-lab.git /home/student/incus-lab || true"
+  - echo "CR380 Fresh VM ready. Incus NOT installed — start with lab 01." > /etc/motd
