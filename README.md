@@ -82,15 +82,15 @@ graph LR
 | 00 | **Preflight** | Vérifier l'environnement (OS, sudo, réseau, disque) | Verify environment (OS, sudo, network, disk) | — |
 | 01 | **Désinstallation** | Supprimer Incus complètement pour repartir à zéro | Remove Incus completely for a clean start | `sudo apt purge incus incus-client` |
 | 02 | **Installation** | Installer Incus via le gestionnaire de paquets | Install Incus via the package manager | `sudo apt install incus` |
-| 03 | **Post-installation** | Ajouter l'utilisateur au groupe `incus-admin` | Add the user to the `incus-admin` group | `sudo usermod -aG incus-admin $USER` |
+| 03 | **Post-installation** | Ajouter l'utilisateur au groupe `incus-admin` | Add the user to the `incus-admin` group | `sudo adduser $USER incus-admin` |
 | 04 | **Initialisation** | Configurer stockage, réseau et profils via preseed | Configure storage, network and profiles via preseed | `incus admin init --preseed` |
 | 05 | **Registres** | Explorer les serveurs d'images distants | Explore remote image servers | `incus remote list` |
-| 06 | **Images** | Chercher, télécharger et gérer les images | Search, download and manage images | `incus image copy images:ubuntu/noble local: --alias ubuntux64` |
+| 06 | **Images** | Chercher, télécharger et gérer les images | Search, download and manage images | `incus image copy images:ubuntu/noble/amd64 local: --alias ubuntux64` |
 | 07 | **Conteneurs** | Lancer, cloner, publier et supprimer des conteneurs | Launch, clone, publish and delete containers | `incus launch ubuntux64 u1` |
-| 08 | **Ports** | Exposer un port via un proxy device | Expose a port via a proxy device | `incus config device add routerCT myproxy proxy listen=tcp:0.0.0.0:8888 connect=tcp:127.0.0.1:80` |
-| 09 | **Application** | Installer nginx dans un conteneur Debian, publier l'image | Install nginx in a Debian container, publish the image | `incus exec debianCT -- apt install nginx` |
+| 08 | **Ports** | Exposer un port via un proxy device | Expose a port via a proxy device | `incus config device add routerCT monport80vers8888 proxy listen=tcp:0.0.0.0:8888 connect=tcp:127.0.0.1:80` |
+| 09 | **Application** | Installer nginx dans un conteneur Debian, publier l'image | Install nginx in a Debian container, publish the image | `incus exec debianCT -- apt-get install -y nginx` |
 | 10 | **Fichiers** | Transférer des fichiers entre l'hôte et un conteneur | Transfer files between host and container | `incus file push index.html nginxCT/var/www/html/` |
-| 11 | **Stockage** | Créer un pool de stockage dédié | Create a dedicated storage pool | `incus storage create websrv_storage dir` |
+| 11 | **Stockage** | Créer un pool de stockage dédié | Create a dedicated storage pool | `incus storage create websrv_storage dir source=/root/websrv_dir` |
 | 12 | **Volumes** | Créer et attacher un volume persistant | Create and attach a persistent volume | `incus storage volume attach websrv_storage www_volume appwebCT /var/www` |
 | 99 | **Nettoyage** | Tout supprimer et repartir à zéro | Delete everything and start fresh | `sudo ./run-labs.sh --reset 99` |
 
@@ -127,6 +127,7 @@ When a test fails, the script shows:
 | `--quick` | Rapide / Quick | Sauter install/init si Incus est déjà présent / Skip install/init if Incus present |
 | `--diff` | Comparaison / Compare | Comparer les 2 derniers rapports JSON / Compare last 2 JSON reports |
 | `--verbose` | Verbeux / Verbose | Afficher toutes les sorties / Show all output |
+| `--check-images` | Vérification / Check | Vérifier que les images existent dans les registres / Verify images exist in registries |
 
 ---
 
