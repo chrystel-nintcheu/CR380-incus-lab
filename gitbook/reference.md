@@ -53,7 +53,24 @@ Toutes les valeurs utilisées dans les labs sont centralisées dans le fichier `
 
 ## Dépannage
 
-### 1. `Permission denied` lors de l'accès à Incus
+### 1. `fatal: The group 'incus-admin' does not exist`
+
+{% hint style="danger" %}
+Le groupe `incus-admin` a été supprimé (Lab 01) et n'a pas été recréé lors de la réinstallation. Le paquet Ubuntu ne recrée pas ce groupe automatiquement.
+{% endhint %}
+
+```bash
+# Créer le groupe manuellement
+sudo addgroup --system incus-admin
+
+# Redémarrer le service (il échoue sans ce groupe)
+sudo systemctl reset-failed incus
+sudo systemctl restart incus
+```
+
+Voir Lab 02 — Étape 3 pour plus de détails.
+
+### 2. `Permission denied` lors de l'accès à Incus
 
 {% hint style="warning" %}
 Votre utilisateur n'est pas dans le groupe `incus-admin`, ou le groupe n'est pas encore actif.
@@ -70,7 +87,7 @@ sudo adduser $USER incus-admin
 sg incus-admin -c "incus info"
 ```
 
-### 2. Téléchargement d'image expiré (timeout)
+### 3. Téléchargement d'image expiré (timeout)
 
 {% hint style="warning" %}
 Votre connexion Internet est lente ou le serveur d'images est temporairement indisponible.
@@ -84,7 +101,7 @@ ping -c3 images.linuxcontainers.org
 incus image copy images:ubuntu/noble/amd64 local: --alias ubuntux64 --auto-update
 ```
 
-### 3. Port déjà utilisé (`address already in use`)
+### 4. Port déjà utilisé (`address already in use`)
 
 {% hint style="warning" %}
 Un autre conteneur ou processus utilise déjà le port.
@@ -98,7 +115,7 @@ sudo ss -tlnp | grep :8888
 incus config device remove routerCT monport80vers8888
 ```
 
-### 4. Conteneur ne démarre pas (déjà existant)
+### 5. Conteneur ne démarre pas (déjà existant)
 
 {% hint style="warning" %}
 Un conteneur avec le même nom existe déjà d'un lab précédent.
@@ -113,7 +130,7 @@ incus delete --force u1
 incus launch ubuntux64 u1
 ```
 
-### 5. Bridge réseau persiste après désinstallation
+### 6. Bridge réseau persiste après désinstallation
 
 {% hint style="warning" %}
 L'interface réseau `cr380incusbr0` peut persister même après la purge d'Incus.
@@ -128,7 +145,7 @@ sudo ip link set cr380incusbr0 down
 sudo ip link delete cr380incusbr0
 ```
 
-### 6. `hash incus` cache après suppression
+### 7. `hash incus` cache après suppression
 
 {% hint style="warning" %}
 Bash met en cache l'emplacement des commandes. Après la désinstallation d'incus, `which incus` peut encore le trouver.
@@ -139,7 +156,7 @@ hash -r   # Vider le cache
 which incus   # Devrait maintenant échouer
 ```
 
-### 7. Suite de tests : « already running »
+### 8. Suite de tests : « already running »
 
 {% hint style="info" %}
 Si `run-labs.sh` signale qu'une instance est déjà en cours, arrêtez tous les processus liés, puis relancez.

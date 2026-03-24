@@ -77,6 +77,10 @@ sudo groupdel incus-admin 2>/dev/null
 sudo groupdel incus 2>/dev/null
 ```
 
+{% hint style="warning" %}
+**Attention** : Le paquet Ubuntu ne recrée pas automatiquement le groupe `incus-admin` lors d'une réinstallation. Vous devrez le recréer manuellement au Lab 02 — Étape 3 avant de pouvoir démarrer le service Incus.
+{% endhint %}
+
 ## Étape 5 : Vérification
 
 {% tabs %}

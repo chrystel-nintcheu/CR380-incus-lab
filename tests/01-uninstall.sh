@@ -150,6 +150,9 @@ This is good practice before any installation."
                 log "Deleted group: ${grp}"
             done <<< "${groups}"
             pass "Incus groups removed / Groupes incus supprimés"
+            learn_pause \
+                "⚠️  Note: Le paquet Ubuntu ne recrée PAS ces groupes lors d'une\nréinstallation. Le Lab 02 s'en chargera automatiquement." \
+                "⚠️  Note: The Ubuntu package does NOT recreate these groups on\nreinstall. Lab 02 will handle this automatically."
         else
             pass "No incus groups found / Aucun groupe incus"
         fi

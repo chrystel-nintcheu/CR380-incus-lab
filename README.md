@@ -85,7 +85,7 @@ graph LR
 |---|-----|---------------|----------------|---------------------------|
 | 00 | **Preflight** | Vérifier l'environnement (OS, sudo, réseau, disque) | Verify environment (OS, sudo, network, disk) | — |
 | 01 | **Désinstallation** | Supprimer Incus complètement pour repartir à zéro | Remove Incus completely for a clean start | `sudo apt purge incus incus-client` |
-| 02 | **Installation** | Installer Incus via le gestionnaire de paquets | Install Incus via the package manager | `sudo apt install incus` |
+| 02 | **Installation** | Installer Incus et recréer le groupe `incus-admin` | Install Incus and recreate the `incus-admin` group | `sudo apt install incus && sudo addgroup --system incus-admin` |
 | 03 | **Post-installation** | Ajouter l'utilisateur au groupe `incus-admin` | Add the user to the `incus-admin` group | `sudo adduser $USER incus-admin` |
 | 04 | **Initialisation** | Configurer stockage, réseau et profils via preseed | Configure storage, network and profiles via preseed | `incus admin init --preseed` |
 | 05 | **Registres** | Explorer les serveurs d'images distants | Explore remote image servers | `incus remote list` |
