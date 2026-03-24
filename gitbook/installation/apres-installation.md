@@ -21,6 +21,10 @@ Lisez la documentation officielle : [Sécurité Incus](https://linuxcontainers.o
 
 ## Étape 1 : Ajouter l'utilisateur au groupe
 
+{% hint style="warning" %}
+**Prérequis** : Le groupe `incus-admin` doit exister avant cette commande. Si vous obtenez `fatal: The group 'incus-admin' does not exist`, retournez au Lab 02 — Étape 3 pour créer le groupe.
+{% endhint %}
+
 {% tabs %}
 {% tab title="Français" %}
 Ceci permet à votre utilisateur de contrôler incus sans sudo.

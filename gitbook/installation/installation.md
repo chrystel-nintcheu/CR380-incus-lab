@@ -34,19 +34,43 @@ The `-y` flag automatically answers 'yes' to confirmations.
 sudo apt-get install -y incus
 ```
 
-## Étape 3 : Vérifier l'installation
+## Étape 3 : Créer le groupe incus-admin
+
+{% hint style="danger" %}
+**Important** : Le paquet Ubuntu ne recrée pas le groupe `incus-admin` si celui-ci a été supprimé (par exemple après une désinstallation complète au Lab 01). Sans ce groupe, le service Incus ne peut pas démarrer.
+{% endhint %}
 
 {% tabs %}
 {% tab title="Français" %}
-Incus est maintenant installé et le service est actif ! Vous pouvez vérifier manuellement avec les commandes suivantes.
+Vérifiez si le groupe existe. S'il est absent, créez-le manuellement avant de démarrer le service.
 {% endtab %}
 {% tab title="English" %}
-Incus is now installed and the service is active! You can verify manually with the following commands.
+Check if the group exists. If it is missing, create it manually before starting the service.
+{% endtab %}
+{% endtabs %}
+
+```bash
+getent group incus-admin || sudo addgroup --system incus-admin
+```
+
+{% hint style="success" %}
+**Résultat attendu** : La commande affiche la ligne du groupe, ou le crée silencieusement.
+{% endhint %}
+
+## Étape 4 : Vérifier l'installation
+
+{% tabs %}
+{% tab title="Français" %}
+Incus est maintenant installé. Vérifiez la version et l'état du service.
+{% endtab %}
+{% tab title="English" %}
+Incus is now installed. Check the version and service status.
 {% endtab %}
 {% endtabs %}
 
 ```bash
 incus --version
+sudo systemctl reset-failed incus 2>/dev/null; sudo systemctl start incus
 systemctl is-active incus
 ```
 
@@ -55,9 +79,11 @@ systemctl is-active incus
 {% endhint %}
 
 {% hint style="warning" %}
-Si le service n'est pas actif, démarrez-le manuellement :
+Si le service reste inactif après `systemctl start incus`, vérifiez les logs :
 
 ```bash
-sudo systemctl start incus
+sudo journalctl -u incus -n 20 --no-pager
 ```
+
+L'erreur `chown: invalid group: 'root:incus-admin'` signifie que le groupe est manquant — retournez à l'étape 3.
 {% endhint %}

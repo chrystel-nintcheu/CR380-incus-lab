@@ -77,7 +77,27 @@ The -y flag automatically answers 'yes' to confirmations."
     fi
 
     # -------------------------------------------------------------------------
-    # Step 3: Verify installation — version check
+    # Step 3: Ensure incus-admin group exists
+    # FR: S'assurer que le groupe incus-admin existe
+    # -------------------------------------------------------------------------
+    # STUDENT NOTE: Le paquet Ubuntu ne recrée pas le groupe après une purge.
+    #   Le service incus échoue au démarrage sans ce groupe (chown root:incus-admin).
+    # The Ubuntu package does not recreate the group after a purge.
+    #   The incus service fails to start without this group (chown root:incus-admin).
+    if ! getent group incus-admin &>/dev/null; then
+        learn_pause \
+            "Le groupe 'incus-admin' n'existe pas. Le paquet Ubuntu ne le recrée pas\naprès une désinstallation. Nous devons le créer manuellement." \
+            "The 'incus-admin' group does not exist. The Ubuntu package does not\nrecreate it after an uninstall. We must create it manually."
+
+        run_cmd "Create incus-admin group" "${TIMEOUT_DEFAULT}" \
+            sudo addgroup --system incus-admin
+        pass "incus-admin group created / groupe incus-admin créé"
+    else
+        pass "incus-admin group already exists / groupe incus-admin existe déjà"
+    fi
+
+    # -------------------------------------------------------------------------
+    # Step 4: Verify installation — version check
     # FR: Vérification — contrôle de version
     # -------------------------------------------------------------------------
     # STUDENT NOTE: incus --version retourne la version installée
@@ -95,11 +115,13 @@ The -y flag automatically answers 'yes' to confirmations."
     fi
 
     # -------------------------------------------------------------------------
-    # Step 4: Verify systemd service is active
+    # Step 5: Verify systemd service is active
     # FR: Vérifier que le service systemd est actif
     # -------------------------------------------------------------------------
     # STUDENT NOTE: systemctl is-active vérifie si un service est en cours d'exécution
     # systemctl is-active checks if a service is running
+    # NOTE: If the service was started before the group existed, reset it first.
+    sudo systemctl reset-failed incus 2>/dev/null || true
     run_cmd "Check incus service status" "${TIMEOUT_DEFAULT}" \
         systemctl is-active incus || true
 
