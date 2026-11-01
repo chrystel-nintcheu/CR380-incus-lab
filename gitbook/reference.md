@@ -9,8 +9,8 @@ Toutes les valeurs utilisées dans les labs sont centralisées dans le fichier `
 | Image | Identifiant distant | Alias local |
 |-------|-------------------|-------------|
 | Ubuntu 24.04 (Noble) | `images:ubuntu/noble/amd64` | `ubuntux64` |
-| Alpine 3.20 | `images:alpine/3.20` | `alpinex64` |
-| OpenWRT 23.05 | `images:openwrt/23.05/amd64` | `openwrt23.05` |
+| Alpine 3.22 | `images:alpine/3.22` | `alpinex64` |
+| OpenWRT 25.12 | `images:openwrt/25.12/amd64` | `openwrt25.12` |
 | Debian 12 | `images:debian/12` | `debian12` |
 
 ### Conteneurs
@@ -19,7 +19,7 @@ Toutes les valeurs utilisées dans les labs sont centralisées dans le fichier `
 |-----------|-----------|-------------|
 | `u1` | Lab 07 | `ubuntux64` |
 | `cloneU1x64` | Lab 07 | `imgCustomU1x64` (supprimé dans le même lab) |
-| `routerCT` | Lab 08 | `openwrt23.05` |
+| `routerCT` | Lab 08 | `openwrt25.12` |
 | `debianCT` | Lab 09 | `debian12` (supprimé après publication) |
 | `nginxCT` | Lab 09 | `nginx-0.0.0` |
 | `appwebCT` | Lab 11 | `demo-app-0.0.0` |

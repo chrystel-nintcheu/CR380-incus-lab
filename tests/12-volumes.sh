@@ -175,6 +175,11 @@ Destination: ${volume_html_dir}"
         git clone "${DEMO_APP_REPO}" "${volume_html_dir}" || true
 
     if (( CMD_EXIT_CODE == 0 )) && [[ -d "${volume_html_dir}" ]]; then
+        run_cmd "Pin demo app to commit ${DEMO_APP_REF:0:7}" "${TIMEOUT_DEFAULT}" \
+            git -C "${volume_html_dir}" checkout --quiet "${DEMO_APP_REF}" || true
+    fi
+
+    if (( CMD_EXIT_CODE == 0 )) && [[ -d "${volume_html_dir}" ]]; then
         pass "Demo app cloned into volume at '${volume_html_dir}'"
     else
         fail "Failed to clone demo app into volume" \

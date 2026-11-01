@@ -92,6 +92,7 @@ Now we clone the demo application repository and push it to the container to rep
 
 ```bash
 git clone https://github.com/nintcheu/dog-breed-recognition.git ml-app
+git -C ml-app checkout 32a56e0baeb819a34e4ddacf700122c4db1c6fee
 incus file push -r ml-app nginxCT/var/www/
 ```
 

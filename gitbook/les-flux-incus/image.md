@@ -70,8 +70,8 @@ Downloads the image and assigns an alias for local use. The `--auto-update` flag
 
 ```bash
 incus image copy images:ubuntu/noble/amd64 local: --alias ubuntux64 --auto-update
-incus image copy images:alpine/3.20 local: --alias alpinex64 --auto-update
-incus image copy images:openwrt/23.05/amd64 local: --alias openwrt23.05 --auto-update
+incus image copy images:alpine/3.22 local: --alias alpinex64 --auto-update
+incus image copy images:openwrt/25.12/amd64 local: --alias openwrt25.12 --auto-update
 incus image copy images:debian/12 local: --alias debian12 --auto-update
 ```
 
@@ -95,7 +95,7 @@ incus image ls
 ```
 
 {% hint style="success" %}
-**Résultat attendu** : Les quatre alias apparaissent dans la liste : `ubuntux64`, `alpinex64`, `openwrt23.05`, `debian12`.
+**Résultat attendu** : Les quatre alias apparaissent dans la liste : `ubuntux64`, `alpinex64`, `openwrt25.12`, `debian12`.
 {% endhint %}
 
 ## Étape 5 : Supprimer une image
@@ -115,5 +115,5 @@ incus image ls
 ```
 
 {% hint style="success" %}
-**Résultat attendu** : L'alias `alpinex64` n'apparaît plus dans la liste. Il reste trois images : `ubuntux64`, `openwrt23.05`, `debian12`.
+**Résultat attendu** : L'alias `alpinex64` n'apparaît plus dans la liste. Il reste trois images : `ubuntux64`, `openwrt25.12`, `debian12`.
 {% endhint %}

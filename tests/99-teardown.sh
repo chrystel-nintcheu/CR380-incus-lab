@@ -20,31 +20,29 @@ run_test() {
     # No dependency check — teardown always runs
 
     learn_pause \
-        "Ce script nettoie TOUT ce qui a été créé pendant les labs:
-- Arrête et supprime tous les conteneurs
-- Supprime toutes les images personnalisées
-- Supprime les volumes et pools de stockage
+        "Ce script nettoie ce qui a été créé pendant les labs:
+- Arrête et supprime les conteneurs du lab (les autres sont conservés)
+- Supprime les images du lab
+- Supprime les volumes et pools de stockage du lab
 - Supprime les fichiers temporaires
 
 Votre système sera comme avant les labs." \
-        "This script cleans up EVERYTHING created during the labs:
-- Stops and deletes all containers
-- Deletes all custom images
-- Deletes volumes and storage pools
+        "This script cleans up what was created during the labs:
+- Stops and deletes the lab containers (others are kept)
+- Deletes the lab images
+- Deletes the lab volumes and storage pools
 - Removes temporary files
 
 Your system will be like before the labs."
 
     # -------------------------------------------------------------------------
-    # Step 1: Stop all containers
-    # FR: Arrêter tous les conteneurs
+    # Step 1: Check that Incus is available
+    # FR: Vérifier qu'Incus est disponible
     # -------------------------------------------------------------------------
     # Check if incus is available before trying to manage containers
     if ! command -v incus &>/dev/null || ! getent group incus-admin &>/dev/null; then
-        pass "Incus not installed or no incus-admin group — nothing to clean"
-        pass "All known containers cleaned up / Tous les conteneurs connus nettoyés"
-        pass "All known images cleaned up / Toutes les images connues nettoyées"
-        pass "Advanced storage cleaned up"
+        skip "Incus not installed or no incus-admin group — nothing to clean" \
+             "incus ou groupe incus-admin absent"
 
         # Still clean up temporary files
         local cleanup_paths=(
@@ -58,19 +56,13 @@ Your system will be like before the labs."
             [[ -e "${path}" ]] && rm -rf "${path}"
         done
         pass "Temporary files cleaned up / Fichiers temporaires nettoyés"
-        pass "No containers remaining / Aucun conteneur restant"
-        pass "No images remaining / Aucune image restante"
         section_summary
         return 0
     fi
 
-    run_cmd "Stop all containers" "${TIMEOUT_DEFAULT}" \
-        incus_run incus stop --all --force 2>/dev/null || true
-    pass "Attempted to stop all containers"
-
     # -------------------------------------------------------------------------
-    # Step 2: Delete all known containers
-    # FR: Supprimer tous les conteneurs connus
+    # Step 2: Delete all known containers (and only those)
+    # FR: Supprimer les conteneurs du lab, et seulement ceux-là
     # -------------------------------------------------------------------------
     local containers=("${CT_U1}" "${CT_CLONE}" "${CT_ROUTER}" "${CT_DEBIAN}" "${CT_NGINX}" "${CT_APPWEB}")
 
@@ -78,18 +70,6 @@ Your system will be like before the labs."
         cleanup_container "${ct}"
     done
     pass "All known containers cleaned up / Tous les conteneurs connus nettoyés"
-
-    # Also delete any remaining containers
-    run_cmd "List remaining containers" "${TIMEOUT_DEFAULT}" \
-        incus_run incus list --format csv -c n 2>/dev/null || true
-    if [[ -n "${CMD_OUTPUT}" ]] && (( CMD_EXIT_CODE == 0 )); then
-        while IFS= read -r ct; do
-            [[ -z "${ct}" ]] && continue
-            cleanup_container "${ct}"
-            log "CLEANUP: deleted leftover container ${ct}"
-        done <<< "${CMD_OUTPUT}"
-        pass "Leftover containers cleaned up"
-    fi
 
     # -------------------------------------------------------------------------
     # Step 3: Delete custom images
@@ -138,34 +118,53 @@ Your system will be like before the labs."
         "Vérifions que tout est propre..." \
         "Let's verify everything is clean..."
 
-    run_cmd "Check remaining containers" "${TIMEOUT_DEFAULT}" \
-        incus_run incus list --format csv -c n 2>/dev/null || true
+    run_cmd "Check remaining lab containers" "${TIMEOUT_DEFAULT}" \
+        incus_run incus list --format csv -c n || true
 
     if (( CMD_EXIT_CODE != 0 )); then
-        # incus command failed (daemon not running, group missing, etc.) — not a container list
-        pass "No containers to check (incus unavailable) / Aucun conteneur à vérifier"
-    elif [[ -z "${CMD_OUTPUT}" ]]; then
-        pass "No containers remaining / Aucun conteneur restant"
+        fail "Cannot list containers" \
+             "exit code 0" \
+             "exit code ${CMD_EXIT_CODE}: ${CMD_OUTPUT:0:200}" \
+             "Vérifiez le démon Incus: systemctl status incus"
     else
-        fail "Some containers still exist" \
-             "empty list" \
-             "${CMD_OUTPUT}" \
-             "Supprimez manuellement: incus delete --force <nom>"
+        local leftover=""
+        for ct in "${containers[@]}"; do
+            if printf '%s\n' "${CMD_OUTPUT}" | grep -qFx -- "${ct}"; then
+                leftover+="${ct} "
+            fi
+        done
+        if [[ -z "${leftover}" ]]; then
+            pass "No lab containers remaining / Aucun conteneur du lab restant"
+        else
+            fail "Some lab containers still exist" \
+                 "none of: ${containers[*]}" \
+                 "${leftover}" \
+                 "Supprimez manuellement: incus delete --force <nom>"
+        fi
     fi
 
-    run_cmd "Check remaining custom images" "${TIMEOUT_DEFAULT}" \
-        incus_run incus image list --format csv 2>/dev/null || true
+    run_cmd "Check remaining lab images" "${TIMEOUT_DEFAULT}" \
+        incus_run incus image alias list --format csv || true
 
     if (( CMD_EXIT_CODE != 0 )); then
-        pass "No images to check (incus unavailable) / Aucune image à vérifier"
-    elif [[ -z "${CMD_OUTPUT}" ]]; then
-        pass "No images remaining / Aucune image restante"
+        fail "Cannot list image aliases" \
+             "exit code 0" \
+             "exit code ${CMD_EXIT_CODE}: ${CMD_OUTPUT:0:200}" \
+             "Vérifiez le démon Incus: systemctl status incus"
     else
-        # Images might include base images from the pool — only warn
-        local count
-        count=$(echo "${CMD_OUTPUT}" | wc -l)
-        if (( count > 0 )); then
-            pass "Remaining images (may be cache): ${count} entries"
+        local leftover_img=""
+        for img in "${images[@]}"; do
+            if printf '%s\n' "${CMD_OUTPUT}" | cut -d, -f1 | grep -qFx -- "${img}"; then
+                leftover_img+="${img} "
+            fi
+        done
+        if [[ -z "${leftover_img}" ]]; then
+            pass "No lab images remaining / Aucune image du lab restante"
+        else
+            fail "Some lab images still exist" \
+                 "none of: ${images[*]}" \
+                 "${leftover_img}" \
+                 "Supprimez manuellement: incus image delete <alias>"
         fi
     fi
 

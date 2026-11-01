@@ -40,29 +40,28 @@ sudo ./run-labs.sh --diff
 
 Ceci compare le dernier rapport avec le précédent pour détecter les régressions.
 
-## Provisionnement des VMs étudiantes / Student VM Provisioning
+## Poste de test WSL / WSL test bench
 
-### Option A: Multipass (sur l'ordinateur de l'étudiant)
+Les VM Multipass et Proxmox (`cloud-init/`) ne sont pas utilisées sous WSL. Les étudiants
+préparent leur poste avec `gitbook/preparation-hote/README.md`.
 
-```bash
-# VM propre (labs à partir de zéro)
-./cloud-init/provision-multipass.sh --fresh
+### Valider les labs sur une distribution jetable (PowerShell)
 
-# VM pré-configurée (labs avancés)
-./cloud-init/provision-multipass.sh --ready
+```powershell
+# Une seule fois : crée l'état de référence (Ubuntu 24.04, utilisateur student, systemd)
+.\wsl\run-wsl-tests.ps1 -Prepare
+
+# À chaque validation : distribution neuve cr380-test, sudo ./run-labs.sh --validate, rapports dans wsl\out\
+.\wsl\run-wsl-tests.ps1
 ```
 
-### Option B: Proxmox (VMs centralisées)
-
-1. Créez un template Ubuntu 24.04 dans Proxmox
-2. Configurez cloud-init avec le contenu de `cloud-init/user-data-fresh.yaml`
-3. Clonez le template pour chaque étudiant
+Le script ne touche qu'aux distributions dont le nom correspond à `^cr380-[a-z0-9-]+$` et
+retourne un code non nul au moindre échec ou test ignoré. Ne validez jamais avec `--quick`.
 
 ### Personnalisation
 
-- **SSH keys**: Ajoutez les clés SSH des étudiants dans les fichiers cloud-init
-- **Git repo URL**: Remplacez `CHANGE-ME` dans les fichiers cloud-init par l'URL réelle du dépôt
-- **Password**: Changez le mot de passe par défaut `cr380lab` dans les fichiers cloud-init
+- **Git repo URL**: la branche WSL est clonée avec `git clone -b wsl-version <url>`
+- **Mot de passe**: chaque étudiant crée son propre utilisateur Ubuntu au premier lancement
 
 ## Correction rapide d'un lab / Quick lab fix
 

@@ -27,8 +27,8 @@ sudo ./run-labs.sh --validate
 sudo ./run-labs.sh --learn --lab 07
 ```
 
-> **Prérequis / Prerequisites** : Ubuntu 24.04 LTS (amd64), accès `sudo`, connexion Internet, 10 Go+ d'espace disque libre.
-> Voir le [Guide de l'étudiant](docs/STUDENT-GUIDE.md) pour la configuration de la VM / See the [Student Guide](docs/STUDENT-GUIDE.md) for VM setup.
+> **Prérequis / Prerequisites** : Windows 10 (build 19041+) ou 11 avec WSL 2 et Ubuntu 24.04 (amd64), accès `sudo`, connexion Internet, 10 Go+ d'espace disque libre dans Ubuntu.
+> Voir la [préparation de l'hôte](gitbook/preparation-hote/README.md) et le [Guide de l'étudiant](docs/STUDENT-GUIDE.md) / See the [host preparation](gitbook/preparation-hote/README.md) and the [Student Guide](docs/STUDENT-GUIDE.md).
 
 ---
 
@@ -145,7 +145,10 @@ incus-lab/
 │   ├── _common.sh           # Framework de test / Test framework
 │   ├── 00-preflight.sh      # → 12-volumes.sh  (13 labs)
 │   └── 99-teardown.sh       # Nettoyage final / Final cleanup
-├── cloud-init/
+├── wsl/
+│   ├── run-wsl-tests.ps1          # Banc d'essai WSL (PowerShell) / WSL test bench
+│   └── provision-wsl.sh           # Distribution de référence / Reference distribution
+├── cloud-init/                    # Version Multipass (non utilisée sous WSL / unused on WSL)
 │   ├── user-data-fresh.yaml       # VM propre / Clean VM
 │   ├── user-data-ready.yaml       # VM pré-configurée / Pre-configured VM
 │   └── provision-multipass.sh     # Lanceur Multipass / Multipass launcher
@@ -160,7 +163,7 @@ incus-lab/
 
 | Document | Description |
 |----------|-------------|
-| [Guide de l'étudiant / Student Guide](docs/STUDENT-GUIDE.md) | Configuration VM, première exécution, aide / VM setup, first run, help |
+| [Guide de l'étudiant / Student Guide](docs/STUDENT-GUIDE.md) | Préparation de l'hôte WSL, première exécution, aide / WSL host preparation, first run, help |
 | [Guide de l'enseignant / Teacher Guide](docs/TEACHER-GUIDE.md) | Validation pré-cours, configuration / Pre-class validation, configuration |
 | [Dépannage / Troubleshooting](docs/TROUBLESHOOTING.md) | Erreurs fréquentes et solutions / Common errors and solutions |
 | [Architecture](docs/ARCHITECTURE.md) | Fonctionnement interne du framework / Framework internals |

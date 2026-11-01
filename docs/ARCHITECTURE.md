@@ -31,9 +31,9 @@ Key functions:
 
 #### `incus_run` Wrapper
 
-At source time, `_common.sh` creates an executable wrapper at `/tmp/.incus_run_cr380`:
+At source time, `_common.sh` creates an executable wrapper with `mktemp` (`/tmp/.incus_run_cr380.XXXXXX`, removed on exit):
 - **Root (EUID=0)**: the wrapper calls `exec "$@"` directly — root accesses the Incus socket without group membership.
-- **Regular user**: the wrapper calls `exec sg incus-admin -c "$*"` — acquires the `incus-admin` group for socket access.
+- **Regular user**: the wrapper calls `exec sg incus-admin -c "$(printf '%q ' "$@")"` — acquires the `incus-admin` group for socket access, and `%q` keeps each argument intact.
 
 This avoids `newgrp` (which spawns a new shell and breaks scripts) and is compatible with `timeout` (which requires an executable, not a function). All test files use `incus_run incus ...` instead of bare `incus ...`.
 

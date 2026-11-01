@@ -8,30 +8,39 @@ la suite de tests en mode interactif.
 This guide will help you set up your lab environment and use the test suite
 in interactive mode.
 
-## Configuration de la VM / VM Setup
+## Préparation de l'hôte / Host preparation
 
-### Option 1: Multipass (recommandé / recommended)
+Avant le Lab 00, préparez votre ordinateur Windows 10 ou 11 : installation de WSL 2,
+d'Ubuntu 24.04, vérification de systemd, puis clonage du dépôt dans `~`.
+La procédure pas à pas est dans `gitbook/preparation-hote/README.md`.
 
-```bash
-# Installer multipass / Install multipass
-sudo snap install multipass
+Before Lab 00, prepare your Windows 10 or 11 computer: install WSL 2 and
+Ubuntu 24.04, check systemd, then clone the repository into `~`.
+The step-by-step procedure is in `gitbook/preparation-hote/README.md`.
 
-# Lancer une VM propre / Launch a clean VM
-./cloud-init/provision-multipass.sh --fresh
+Résumé / Summary:
 
-# Se connecter / Connect
-multipass shell cr380-lab
+```powershell
+# PowerShell en administrateur / PowerShell as administrator
+wsl --install Ubuntu-24.04
+wsl -l -v          # VERSION doit être 2 / VERSION must be 2
+wsl --update
 ```
 
-### Option 2: VM Proxmox
+```bash
+# Dans Ubuntu / Inside Ubuntu
+cd ~
+git clone -b wsl-version https://github.com/chrystel-nintcheu/CR380-incus-lab.git
+cd CR380-incus-lab
+sudo ./run-labs.sh --lab 00
+```
 
-Votre enseignant vous fournira les identifiants de connexion.
-Your teacher will provide you with connection credentials.
+Ne placez jamais le dépôt sous `/mnt/c`. / Never put the repository under `/mnt/c`.
 
 ## Première exécution / First run
 
 ```bash
-cd ~/incus-lab
+cd ~/CR380-incus-lab
 
 # Mode interactif (recommandé pour la première fois)
 # Interactive mode (recommended for first time)

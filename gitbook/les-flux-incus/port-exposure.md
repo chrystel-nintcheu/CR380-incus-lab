@@ -29,7 +29,7 @@ OpenWRT is a router OS with a web interface on port 80.
 {% endtabs %}
 
 ```bash
-incus launch openwrt23.05 routerCT
+incus launch openwrt25.12 routerCT
 ```
 
 ## Étape 2 : Ajouter un proxy device

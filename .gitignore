@@ -22,3 +22,6 @@ index.nginx-debian.html
 *.swp
 *.swo
 *~
+
+# Sorties du banc d'essai WSL
+wsl/out/

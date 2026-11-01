@@ -21,10 +21,10 @@ sudo ./run-labs.sh --reset 09
 
 ## Requirements / Prérequis
 
-- Ubuntu 24.04 LTS (amd64)
+- Ubuntu 24.04 LTS (amd64) in WSL 2, on Windows 10 (build 19041+) or Windows 11 / dans WSL 2, sous Windows 10 ou 11 — see `gitbook/preparation-hote/README.md`
 - `sudo` access
 - Internet connection
-- 10 GB+ free disk space
+- 10 GB+ free disk space in Ubuntu / dans Ubuntu
 
 ## Project Structure / Structure du projet
 
@@ -34,7 +34,7 @@ incus-lab/
 ├── config.env               # Central configuration (images, timeouts, names)
 ├── tests/
 │   ├── _common.sh           # Test framework (assertions, logging, reports)
-│   ├── 00-preflight.sh      # Pre-flight checks (OS, sudo, internet, disk)
+│   ├── 00-preflight.sh      # Pre-flight checks (OS, WSL 2, systemd, sudo, internet, disk)
 │   ├── 01-uninstall.sh      # Complete Incus removal
 │   ├── 02-install.sh        # Incus installation via apt
 │   ├── 03-post-install.sh   # Post-install: user groups + permissions

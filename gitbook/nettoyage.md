@@ -6,34 +6,30 @@
 
 {% tabs %}
 {% tab title="Français" %}
-Ce script nettoie TOUT ce qui a été créé pendant les labs :
+Ce script nettoie ce qui a été créé pendant les labs :
 
-- Arrête et supprime tous les conteneurs
-- Supprime toutes les images personnalisées
-- Supprime les volumes et pools de stockage
+- Arrête et supprime les conteneurs du lab (les autres conteneurs sont conservés)
+- Supprime les images du lab
+- Supprime les volumes et pools de stockage du lab
 - Supprime les fichiers temporaires
 
 Votre système sera comme avant les labs.
 {% endtab %}
 {% tab title="English" %}
-This script cleans up EVERYTHING created during the labs:
+This script cleans up what was created during the labs:
 
-- Stops and deletes all containers
-- Deletes all custom images
-- Deletes volumes and storage pools
+- Stops and deletes the lab containers (other containers are kept)
+- Deletes the lab images
+- Deletes the lab volumes and storage pools
 - Removes temporary files
 
 Your system will be like before the labs.
 {% endtab %}
 {% endtabs %}
 
-## Étape 1 : Arrêter et supprimer tous les conteneurs
+## Étape 1 : Arrêter et supprimer les conteneurs du lab
 
-```bash
-incus stop --all --force
-```
-
-Supprimer chaque conteneur :
+L'option `--force` arrête le conteneur avant de le supprimer. Supprimer chaque conteneur du lab :
 
 ```bash
 incus delete --force u1

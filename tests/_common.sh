@@ -45,11 +45,16 @@ source "${PROJECT_ROOT}/config.env"
 # EN: Creates an executable wrapper to run incus commands.
 #     If we are root (EUID=0), runs directly (root has socket access).
 #     Otherwise, uses 'sg incus-admin' for group access.
-INCUS_RUN="/tmp/.incus_run_cr380"
+INCUS_RUN="$(mktemp /tmp/.incus_run_cr380.XXXXXX)"
+trap 'rm -f "${INCUS_RUN}"' EXIT
 if (( EUID == 0 )); then
     printf '#!/bin/bash\nexec "$@"\n' > "${INCUS_RUN}"
 else
-    printf '#!/bin/bash\nexec sg incus-admin -c "$*"\n' > "${INCUS_RUN}"
+    # %q protège chaque argument: sg reçoit une seule chaîne shell
+    cat > "${INCUS_RUN}" <<'EOF'
+#!/bin/bash
+exec sg incus-admin -c "$(printf '%q ' "$@")"
+EOF
 fi
 chmod +x "${INCUS_RUN}"
 # Function alias for convenience (works in subshells from $())
@@ -88,7 +93,11 @@ REPORT_FILE="${RESULTS_DIR}/report-${TIMESTAMP}.json"
 mkdir -p "${LOG_DIR}" "${RESULTS_DIR}"
 
 # Initialize report / Initialiser le rapport
-echo '{"timestamp":"'"${TIMESTAMP}"'","tests":[' > "${REPORT_FILE}"
+# (pas de rapport pour --diff et --check-images : ils n'exécutent aucun test et un
+#  rapport vide écraserait un vrai rapport créé dans la même seconde)
+if [[ "${DIFF_ONLY:-}" != "true" && "${CHECK_IMAGES_ONLY:-}" != "true" ]]; then
+    echo '{"timestamp":"'"${TIMESTAMP}"'","tests":[' > "${REPORT_FILE}"
+fi
 _REPORT_FIRST_ENTRY=true
 
 # =============================================================================
@@ -484,54 +493,70 @@ assert_output_not_empty() {
 # INCUS-SPECIFIC ASSERTIONS / ASSERTIONS SPÉCIFIQUES À INCUS
 # =============================================================================
 
+# FR: Construire la commande qui liste les noms d'un type de ressource (CSV).
+#     Le nom exact est dans la première colonne.
+# EN: Build the command listing resource names as CSV (name in first column).
+_resource_list_cmd() {
+    local resource_type="$1"
+    local pool="${2:-default}"
+
+    case "${resource_type}" in
+        container) RESOURCE_CMD=(incus_run incus list --format csv -c n) ;;
+        image)     RESOURCE_CMD=(incus_run incus image alias list --format csv) ;;
+        storage)   RESOURCE_CMD=(incus_run incus storage list --format csv) ;;
+        network)   RESOURCE_CMD=(incus_run incus network list --format csv) ;;
+        volume)    RESOURCE_CMD=(incus_run incus storage volume list "${pool}" --format csv -c n) ;;
+        *)         return 1 ;;
+    esac
+}
+
 # FR: Vérifier qu'une ressource incus existe (conteneur, image, pool, etc.)
-# EN: Check that an incus resource exists (container, image, pool, etc.)
+#     Comparaison exacte du nom (première colonne CSV), pas de sous-chaîne.
+# EN: Check that an incus resource exists (exact name match, not substring)
 #
 # Usage: assert_resource_exists "container" "u1" "hint"
 assert_resource_exists() {
-    local resource_type="$1"    # container, image, storage, network
+    local resource_type="$1"    # container, image, storage, network, volume
     local name="$2"
     local hint="${3:-}"
+    local description="${resource_type} '${name}' exists / existe"
 
-    local cmd
-    case "${resource_type}" in
-        container) cmd="incus list" ;;
-        image)     cmd="incus image list" ;;
-        storage)   cmd="incus storage list" ;;
-        network)   cmd="incus network list" ;;
-        volume)    cmd="incus storage volume list ${4:-default}" ;;
-        *)         fail "Unknown resource type: ${resource_type}" "" "" ""; return 1 ;;
-    esac
+    if ! _resource_list_cmd "${resource_type}" "${4:-default}"; then
+        fail "Unknown resource type: ${resource_type}" "" "" ""
+        return 1
+    fi
 
-    assert_output_contains \
-        "${resource_type} '${name}' exists / existe" \
-        "${name}" \
-        "${hint}" \
-        bash -c "${cmd}"
+    run_cmd "${description}" "${TIMEOUT_DEFAULT}" "${RESOURCE_CMD[@]}" || true
+
+    if (( CMD_EXIT_CODE == 0 )) && printf '%s\n' "${CMD_OUTPUT}" | cut -d, -f1 | grep -qFx -- "${name}"; then
+        pass "${description}"
+    else
+        fail "${description}" "'${name}' in ${resource_type} list" "${CMD_OUTPUT:0:200}" "${hint}"
+    fi
 }
 
-# FR: Vérifier qu'une ressource incus n'existe PAS
-# EN: Check that an incus resource does NOT exist
+# FR: Vérifier qu'une ressource incus n'existe PAS (nom exact)
+# EN: Check that an incus resource does NOT exist (exact name)
 assert_resource_not_exists() {
     local resource_type="$1"
     local name="$2"
     local hint="${3:-}"
+    local description="${resource_type} '${name}' does not exist / n'existe pas"
 
-    local cmd
-    case "${resource_type}" in
-        container) cmd="incus list" ;;
-        image)     cmd="incus image list" ;;
-        storage)   cmd="incus storage list" ;;
-        network)   cmd="incus network list" ;;
-        volume)    cmd="incus storage volume list ${4:-default}" ;;
-        *)         fail "Unknown resource type: ${resource_type}" "" "" ""; return 1 ;;
-    esac
+    if ! _resource_list_cmd "${resource_type}" "${4:-default}"; then
+        fail "Unknown resource type: ${resource_type}" "" "" ""
+        return 1
+    fi
 
-    assert_output_not_contains \
-        "${resource_type} '${name}' does not exist / n'existe pas" \
-        "${name}" \
-        "${hint}" \
-        bash -c "${cmd}"
+    run_cmd "${description}" "${TIMEOUT_DEFAULT}" "${RESOURCE_CMD[@]}" || true
+
+    if (( CMD_EXIT_CODE != 0 )); then
+        fail "${description}" "successful ${resource_type} listing" "${CMD_OUTPUT:0:200}" "${hint}"
+    elif printf '%s\n' "${CMD_OUTPUT}" | cut -d, -f1 | grep -qFx -- "${name}"; then
+        fail "${description}" "'${name}' absent from ${resource_type} list" "'${name}' present" "${hint}"
+    else
+        pass "${description}"
+    fi
 }
 
 # FR: Attendre qu'un conteneur soit dans l'état RUNNING
@@ -551,7 +576,7 @@ wait_for_ready() {
 
     while (( elapsed < wfr_timeout )); do
         local status
-        status=$(incus list "${ct_name}" --format csv -c s 2>/dev/null || echo "")
+        status=$(incus_run incus list --format csv -c ns 2>/dev/null | awk -F, -v n="${ct_name}" '$1==n {print $2}' || echo "")
         if [[ "${status}" == "RUNNING" ]]; then
             pass "Container '${ct_name}' is RUNNING / est en cours d'exécution"
             return 0
@@ -562,7 +587,7 @@ wait_for_ready() {
 
     fail "Container '${ct_name}' did not reach RUNNING state" \
          "RUNNING" \
-         "$(incus list "${ct_name}" --format csv -c s 2>/dev/null || echo 'not found')" \
+         "$(incus_run incus list --format csv -c ns 2>/dev/null | awk -F, -v n="${ct_name}" '$1==n {print $2}' | grep . || echo 'not found')" \
          "Check: incus list ${ct_name}. Le conteneur peut avoir échoué au démarrage."
     return 1
 }
@@ -588,7 +613,7 @@ cleanup_container() {
 cleanup_image() {
     local alias="$1"
     command -v incus &>/dev/null || return 0
-    if incus_run incus image list --format csv 2>/dev/null | grep -q "${alias}"; then
+    if incus_run incus image alias list --format csv 2>/dev/null | cut -d, -f1 | grep -qFx -- "${alias}"; then
         incus_run incus image delete "${alias}" 2>/dev/null || true
         log "CLEANUP: deleted image ${alias}"
     fi
@@ -599,7 +624,7 @@ cleanup_image() {
 cleanup_storage() {
     local pool="$1"
     command -v incus &>/dev/null || return 0
-    if incus_run incus storage list --format csv 2>/dev/null | grep -q "${pool}"; then
+    if incus_run incus storage list --format csv 2>/dev/null | cut -d, -f1 | grep -qFx -- "${pool}"; then
         # First delete all volumes in the pool
         local volumes
         volumes=$(incus_run incus storage volume list "${pool}" --format csv 2>/dev/null | grep '^custom,' | cut -d',' -f2 || true)
@@ -725,10 +750,15 @@ print_final_summary() {
 # FR: Comparer le dernier rapport avec le précédent
 # EN: Compare the latest report with the previous one
 diff_reports() {
-    local reports
-    reports=$(find "${RESULTS_DIR}" -name 'report-*.json' | sort | tail -2)
+    local reports=""
+    local f
+    while IFS= read -r f; do
+        # Seuls les rapports finalisés (avec résumé) sont comparables
+        grep -q '"summary"' "${f}" 2>/dev/null && reports+="${f}"$'\n'
+    done < <(find "${RESULTS_DIR}" -name 'report-*.json' | sort)
+    reports=$(printf '%s' "${reports}" | tail -n 2)
     local count
-    count=$(echo "${reports}" | wc -l)
+    count=$(printf '%s' "${reports}" | grep -c . || true)
 
     if (( count < 2 )); then
         echo -e "${YELLOW}  Pas assez de rapports pour comparer (besoin de 2 minimum)${NC}"

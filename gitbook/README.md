@@ -10,7 +10,7 @@ Ce guide est généré à partir du dépôt [CR380-incus-lab](https://github.com
 
 | Lab | Titre | Section | Prérequis |
 |-----|-------|---------|-----------|
-| 00 | Vérifications préalables | — | Aucun |
+| 00 | Vérifications préalables | Préparation de l'hôte | Aucun |
 | 01 | Désinstallation | Installation et configuration | Lab 00 |
 | 02 | Installation | Installation et configuration | Lab 01 |
 | 03 | Après installation | Installation et configuration | Lab 02 |
@@ -31,20 +31,20 @@ Ce guide est généré à partir du dépôt [CR380-incus-lab](https://github.com
 {% tab title="Français" %}
 Avant de commencer, assurez-vous que votre machine répond à ces critères :
 
-- **OS** : Ubuntu 24.04 ou supérieur (amd64)
-- **Disque** : au moins 10 Go d'espace libre
+- **OS** : Ubuntu 24.04 (amd64) dans WSL 2, sur Windows 10 (build 19041 ou plus) ou Windows 11. Suivez d'abord la [Préparation de l'hôte](preparation-hote/README.md)
+- **Disque** : au moins 10 Go d'espace libre dans Ubuntu (20 Go libres sur `C:` recommandés)
 - **Internet** : accès à `linuxcontainers.org`
-- **Sudo** : accès sans mot de passe (ou mot de passe en cache)
-- **Outils** : `git`, `curl`, `jq` installés
+- **Sudo** : le mot de passe de votre utilisateur Ubuntu
+- **Outils** : `git`, `curl` et `wget` installés (`jq` facultatif)
 {% endtab %}
 {% tab title="English" %}
 Before starting, make sure your machine meets these requirements:
 
-- **OS**: Ubuntu 24.04 or later (amd64)
-- **Disk**: at least 10 GB free space
+- **OS**: Ubuntu 24.04 (amd64) in WSL 2, on Windows 10 (build 19041 or later) or Windows 11. Follow the [host preparation](preparation-hote/README.md) first
+- **Disk**: at least 10 GB free space in Ubuntu (20 GB free on `C:` recommended)
 - **Internet**: access to `linuxcontainers.org`
-- **Sudo**: passwordless or cached password
-- **Tools**: `git`, `curl`, `jq` installed
+- **Sudo**: your Ubuntu user password
+- **Tools**: `git`, `curl` and `wget` installed (`jq` optional)
 {% endtab %}
 {% endtabs %}
 

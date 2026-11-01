@@ -66,3 +66,7 @@ sg incus-admin -c "incus info"
 {% hint style="warning" %}
 Si vous obtenez une erreur de permission, essayez de vous déconnecter et reconnecter, ou utilisez `sudo incus info` temporairement.
 {% endhint %}
+
+{% hint style="info" %}
+**Sous WSL** : « se déconnecter et reconnecter » signifie redémarrer la distribution. Dans **PowerShell**, tapez `wsl --terminate Ubuntu-24.04`, puis rouvrez Ubuntu.
+{% endhint %}
