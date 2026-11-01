@@ -73,6 +73,10 @@ You should see the OpenWRT web page (LuCI).
 curl -sL --max-time 15 http://localhost:8888
 ```
 
+{% hint style="info" %}
+**Sous WSL** : le même port est aussi joignable depuis Windows (mode réseau NAT par défaut de WSL). Dans **PowerShell** : `curl.exe http://localhost:8888`, ou ouvrez `http://localhost:8888` dans votre navigateur Windows.
+{% endhint %}
+
 ## Étape 5 : Retirer le proxy device
 
 {% tabs %}

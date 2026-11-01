@@ -29,9 +29,9 @@ Classes : **A** adaptation WSL, **B** correction de bug, **C** clarification pé
 | `tests/99-teardown.sh`, `tests/10-file-transfer.sh`, `tests/12-volumes.sh` | **B** | teardown limité aux ressources du lab ; dépôt de démonstration épinglé |
 | `tests/00-preflight.sh` | **A** | ajout des contrôles WSL 2, systemd, `/mnt/c`, Docker, DNS |
 | `tests/01-12` | inchangés hors 10 et 12 | aucun échec constaté |
-| `config.env` | **B** | images Alpine 3.20 et OpenWrt 23.05 retirées du registre ; section `VM_*` (Multipass) sans usage sous WSL |
-| `cloud-init/*` | conservé (règle de la mission) | inutilisé sous WSL ; remplacé par `wsl/provision-wsl.sh` |
-| `README.md`, `docs/*`, `gitbook/*` | **C** (fait) | Multipass/cloud-init remplacés par la préparation de l'hôte WSL ; `docs/TROUBLESHOOTING.md` et `docs/ARCHITECTURE.md` non relus (non vérifié) |
+| `config.env` | **B** | images Alpine 3.20 et OpenWrt 23.05 retirées du registre ; section `VM_*` (Multipass) retirée (sans usage sous WSL) |
+| `cloud-init/*` | **retiré** | inutilisé sous WSL ; remplacé par `wsl/provision-wsl.sh` |
+| `README.md`, `docs/*`, `gitbook/*` | **C** (fait) | Multipass/cloud-init remplacés par la préparation de l'hôte WSL ; diagrammes d'architecture, banc d'essai et schéma d'exécution ajoutés ; `docs/TROUBLESHOOTING.md` (section WSL) et `docs/ARCHITECTURE.md` relus et alignés sur le code ; Labs 01 et 99 du tutoriel alignés sur les scripts |
 | `gitbook/preparation-hote/` | **C** (nouveau) | chapitre « Préparation de l'hôte » (9 étapes, PowerShell et Ubuntu) et « Dépannage WSL » (uniquement les 2 échecs rencontrés) |
 | `.gitattributes` | **A** (nouveau) | force LF pour `.sh`, `.env`, `.yaml`, `.md` |
 | `wsl/run-wsl-tests.ps1`, `wsl/provision-wsl.sh` | **A** (nouveaux) | banc d'essai déterministe |
@@ -65,7 +65,7 @@ Choix des versions (à valider par l'enseignant) : Alpine **3.22** et OpenWrt **
 | `bash -n` sur tous les `.sh` | OK |
 | `shellcheck` 0.9.0 | aucune erreur ; 8 avertissements préexistants (SC2034, SC2155, SC1090, SC2115 dans `10-file-transfer.sh`) non traités |
 | Fins de ligne LF (`.sh`, `.env`, `.yaml`) dans la distribution | OK (après conversion par le banc d'essai) |
-| YAML (`cloud-init/*.yaml`, `.gitbook.yaml`) | valide |
+| YAML (`.gitbook.yaml`) | valide |
 | Liens de `gitbook/SUMMARY.md` | non vérifié par outil (les deux nouvelles pages existent) |
 
 Commandes : `.\wsl\run-wsl-tests.ps1 -Prepare` (une fois), puis `.\wsl\run-wsl-tests.ps1` (code de sortie non nul au moindre échec ou test ignoré).
@@ -105,11 +105,10 @@ Détail : `docs/WSL-PROPOSITIONS.md`. Bug supplémentaire trouvé en testant : `
 
 1. Le dépôt est sur la branche `wsl-version` ; la mission parle de `wsl`. Confirmer la branche.
 2. Valider Alpine 3.22 et OpenWrt 25.12 (le contenu du cours cite OpenWrt 23.05).
-3. Autoriser (ou non) le retrait de la section `VM_*` de `config.env`.
 
 ## Limites connues
 
 - `git` est absent du shell de travail : aucun commit n'a pu être créé, l'état de l'arbre n'a pas pu être vérifié (non vérifié).
 - Phase 4 : le chapitre `gitbook/preparation-hote/` est écrit. Vérifié par exécution : `wsl --install … --name … --no-launch` (Ubuntu 24.04 fournit déjà `systemd=true`, `git`, `curl`, `wget`, pas `jq`), `wsl -l -v`, `systemctl is-system-running`, refus du dépôt sous `/mnt/c` par le Lab 00 (14 contrôles). Non vérifié : premier lancement interactif (création d'utilisateur), `wsl --install Ubuntu-24.04` sans `--name`, `wsl --update`, `wsl --set-version`, détection du BIOS. Seuil de 20 Go sur `C:` : recommandation non mesurée.
-- `docs/TROUBLESHOOTING.md` et `docs/ARCHITECTURE.md` mentionnent encore Multipass/`/tmp` (non relus).
+- Les diagrammes Mermaid (`README.md`, `docs/ARCHITECTURE.md`, `docs/TEACHER-GUIDE.md`) ne sont pas rendus par GitBook ; le tutoriel `gitbook/` utilise un schéma texte. Rendu Mermaid vérifié seulement par relecture (non vérifié dans GitHub).
 - Lab lancé par `sudo ./run-labs.sh` (campagnes complètes) ; le chemin sans `sudo` n'a été exécuté que sur `--check-images`, `--lab 05` à `07` et `--reset 07`.

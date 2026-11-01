@@ -32,6 +32,43 @@ sudo ./run-labs.sh --learn --lab 07
 
 ---
 
+## Environnement d'exécution / Runtime Environment
+
+Les labs s'exécutent **dans une distribution Ubuntu 24.04 sous WSL 2** (Windows 10 ou 11). Incus tourne comme service systemd dans Ubuntu ; les conteneurs sont reliés au pont `cr380incusbr0`. Un port exposé par un `proxy device` est joignable depuis Windows via `localhost` (mode réseau NAT de WSL).
+
+The labs run **inside an Ubuntu 24.04 distribution on WSL 2** (Windows 10 or 11). Incus runs as a systemd service in Ubuntu; containers are attached to the `cr380incusbr0` bridge. A port exposed with a `proxy device` is reachable from Windows through `localhost` (WSL NAT networking).
+
+```mermaid
+graph TB
+    subgraph WIN["🪟 Windows 10 / 11"]
+        PS["PowerShell<br/>wsl.exe · wsl/run-wsl-tests.ps1"]
+        BR["Navigateur / curl.exe<br/>http://localhost:8000"]
+        subgraph WSL["WSL 2 — noyau Linux + systemd"]
+            subgraph UBU["Ubuntu 24.04 — ~/CR380-incus-lab (jamais sous /mnt/c)"]
+                RUN["run-labs.sh<br/>tests/00 … 12, 99"]
+                INCUS["incusd<br/>(service systemd)"]
+                BRIDGE["pont cr380incusbr0<br/>(NAT)"]
+                POOL[("pool cr380storagepool<br/>+ websrv_storage")]
+                subgraph CTS["Conteneurs Incus"]
+                    U1["u1 · routerCT"]
+                    WEB["nginxCT · appwebCT"]
+                end
+            end
+        end
+    end
+
+    PS -->|"wsl -d … -- bash"| RUN
+    RUN -->|"incus_run incus …"| INCUS
+    INCUS --> BRIDGE --> CTS
+    INCUS --> POOL
+    BR -->|"proxy device<br/>8888 · 8000 · 8001"| WEB
+
+    style WSL fill:#e3f2fd
+    style UBU fill:#e8f5e9
+```
+
+---
+
 ## Progression des labs / Lab Progression
 
 Les labs sont organisés en **4 phases d'apprentissage**. Chaque lab dépend du précédent dans sa phase.
@@ -84,7 +121,7 @@ graph LR
 | # | Lab | Description FR | Description EN | Commande clé / Key Command |
 |---|-----|---------------|----------------|---------------------------|
 | 00 | **Preflight** | Vérifier l'environnement (OS, sudo, réseau, disque) | Verify environment (OS, sudo, network, disk) | — |
-| 01 | **Désinstallation** | Supprimer Incus complètement pour repartir à zéro | Remove Incus completely for a clean start | `sudo apt purge incus incus-client` |
+| 01 | **Désinstallation** | Supprimer Incus complètement pour repartir à zéro | Remove Incus completely for a clean start | `sudo apt-get remove --purge -y incus` |
 | 02 | **Installation** | Installer Incus et recréer le groupe `incus-admin` | Install Incus and recreate the `incus-admin` group | `sudo apt install incus && sudo addgroup --system incus-admin` |
 | 03 | **Post-installation** | Ajouter l'utilisateur au groupe `incus-admin` | Add the user to the `incus-admin` group | `sudo adduser $USER incus-admin` |
 | 04 | **Initialisation** | Configurer stockage, réseau et profils via preseed | Configure storage, network and profiles via preseed | `incus admin init --preseed` |
@@ -94,9 +131,9 @@ graph LR
 | 08 | **Ports** | Exposer un port via un proxy device | Expose a port via a proxy device | `incus config device add routerCT monport80vers8888 proxy listen=tcp:0.0.0.0:8888 connect=tcp:127.0.0.1:80` |
 | 09 | **Application** | Installer nginx dans un conteneur Debian, publier l'image | Install nginx in a Debian container, publish the image | `incus exec debianCT -- apt-get install -y nginx` |
 | 10 | **Fichiers** | Transférer des fichiers entre l'hôte et un conteneur | Transfer files between host and container | `incus file push index.html nginxCT/var/www/html/` |
-| 11 | **Stockage** | Créer un pool de stockage dédié | Create a dedicated storage pool | `incus storage create websrv_storage dir source=/root/websrv_dir` |
+| 11 | **Stockage** | Créer un pool de stockage dédié | Create a dedicated storage pool | `incus storage create websrv_storage dir source=$HOME/websrv_dir` |
 | 12 | **Volumes** | Créer et attacher un volume persistant | Create and attach a persistent volume | `incus storage volume attach websrv_storage www_volume appwebCT /var/www` |
-| 99 | **Nettoyage** | Tout supprimer et repartir à zéro | Delete everything and start fresh | `sudo ./run-labs.sh --reset 99` |
+| 99 | **Nettoyage** | Supprimer les ressources du lab (vos autres conteneurs sont conservés) | Delete the lab resources (your other containers are kept) | `sudo ./run-labs.sh --lab 99` |
 
 ---
 
@@ -128,7 +165,7 @@ When a test fails, the script shows:
 | `--learn` | Étudiant / Student | Explications bilingues, pause entre chaque étape / Bilingual explanations, pause between steps |
 | `--lab NN` | Lab unique / Single lab | Exécuter uniquement le lab NN / Run only lab NN |
 | `--reset NN` | Réinitialisation / Reset | Nettoyer puis réexécuter le lab NN / Clean then rerun lab NN |
-| `--quick` | Rapide / Quick | Sauter install/init si Incus est déjà présent / Skip install/init if Incus present |
+| `--quick` | Rapide / Quick | Sauter 00–04 si Incus est déjà présent (jamais pour une validation officielle) / Skip 00–04 if Incus present (never for an official validation) |
 | `--diff` | Comparaison / Compare | Comparer les 2 derniers rapports JSON / Compare last 2 JSON reports |
 | `--verbose` | Verbeux / Verbose | Afficher toutes les sorties / Show all output |
 | `--check-images` | Vérification / Check | Vérifier que les images existent dans les registres / Verify images exist in registries |
@@ -141,17 +178,17 @@ When a test fails, the script shows:
 incus-lab/
 ├── run-labs.sh              # Lanceur principal / Master runner
 ├── config.env               # Configuration centrale / Central config
+├── .gitattributes           # Fins de ligne LF forcées / Forces LF line endings
+├── .gitbook.yaml            # Racine du GitBook (gitbook/) / GitBook root
 ├── tests/
 │   ├── _common.sh           # Framework de test / Test framework
-│   ├── 00-preflight.sh      # → 12-volumes.sh  (13 labs)
+│   ├── 00-preflight.sh      # Contrôles WSL 2, systemd, /mnt/c, Docker, DNS…
+│   ├── 01-uninstall.sh      # → 12-volumes.sh  (13 labs)
 │   └── 99-teardown.sh       # Nettoyage final / Final cleanup
 ├── wsl/
-│   ├── run-wsl-tests.ps1          # Banc d'essai WSL (PowerShell) / WSL test bench
-│   └── provision-wsl.sh           # Distribution de référence / Reference distribution
-├── cloud-init/                    # Version Multipass (non utilisée sous WSL / unused on WSL)
-│   ├── user-data-fresh.yaml       # VM propre / Clean VM
-│   ├── user-data-ready.yaml       # VM pré-configurée / Pre-configured VM
-│   └── provision-multipass.sh     # Lanceur Multipass / Multipass launcher
+│   ├── run-wsl-tests.ps1    # Banc d'essai WSL (PowerShell) / WSL test bench
+│   └── provision-wsl.sh     # Distribution de référence / Reference distribution
+├── gitbook/                 # Tutoriel (GitBook) / Tutorial
 ├── docs/                    # Documentation détaillée / Detailed docs
 ├── results/                 # Rapports JSON / JSON reports (auto-generated)
 └── logs/                    # Journaux détaillés / Detailed logs (auto-generated)
@@ -166,7 +203,11 @@ incus-lab/
 | [Guide de l'étudiant / Student Guide](docs/STUDENT-GUIDE.md) | Préparation de l'hôte WSL, première exécution, aide / WSL host preparation, first run, help |
 | [Guide de l'enseignant / Teacher Guide](docs/TEACHER-GUIDE.md) | Validation pré-cours, configuration / Pre-class validation, configuration |
 | [Dépannage / Troubleshooting](docs/TROUBLESHOOTING.md) | Erreurs fréquentes et solutions / Common errors and solutions |
-| [Architecture](docs/ARCHITECTURE.md) | Fonctionnement interne du framework / Framework internals |
+| [Architecture](docs/ARCHITECTURE.md) | Fonctionnement interne du framework et du banc d'essai WSL / Framework and WSL test bench internals |
+| [Préparation de l'hôte](gitbook/preparation-hote/README.md) | Installer WSL 2 et Ubuntu 24.04, pas à pas / Step-by-step WSL 2 and Ubuntu 24.04 setup |
+| [Dépannage WSL](gitbook/preparation-hote/depannage-wsl.md) | Problèmes rencontrés sous WSL / Issues met on WSL |
+| [Portage WSL](docs/WSL-PORTAGE.md) | Inventaire, différences avec Multipass, versions testées / Inventory, differences with Multipass, tested versions |
+| [Propositions WSL](docs/WSL-PROPOSITIONS.md) | Améliorations hors périmètre et bugs corrigés / Out-of-scope improvements and fixed bugs |
 
 ---
 

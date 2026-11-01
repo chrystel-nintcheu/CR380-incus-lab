@@ -53,6 +53,7 @@ Toutes les valeurs utilisées dans les labs sont centralisées dans le fichier `
 
 ## Dépannage
 
+Pour les problèmes propres à WSL (WSL 1, systemd, fins de ligne `bash\r`, réseau), voir [Dépannage WSL](preparation-hote/depannage-wsl.md).
 ### 1. `fatal: The group 'incus-admin' does not exist`
 
 {% hint style="danger" %}
@@ -83,9 +84,11 @@ getent group incus-admin
 # Ajouter l'utilisateur
 sudo adduser $USER incus-admin
 
-# Activer sans déconnexion
+# Activer sans redémarrer la session
 sg incus-admin -c "incus info"
 ```
+
+**Sous WSL**, pour activer le groupe de façon permanente : dans PowerShell, `wsl --terminate Ubuntu-24.04`, puis rouvrez Ubuntu.
 
 ### 3. Téléchargement d'image expiré (timeout)
 

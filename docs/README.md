@@ -47,15 +47,27 @@ incus-lab/
 │   ├── 10-file-transfer.sh  # File push/pull between host and containers
 │   ├── 11-storage.sh        # Storage pools
 │   ├── 12-volumes.sh        # Persistent volumes
-│   └── 99-teardown.sh       # Full cleanup
-├── cloud-init/
-│   ├── user-data-fresh.yaml       # Clean VM (no Incus)
-│   ├── user-data-ready.yaml       # Pre-configured VM (Incus ready)
-│   └── provision-multipass.sh     # Multipass launcher
+│   └── 99-teardown.sh       # Cleanup of the lab's own resources
+├── wsl/
+│   ├── run-wsl-tests.ps1    # WSL test bench (PowerShell, Windows side)
+│   └── provision-wsl.sh     # Reference distribution provisioning (runs in WSL)
+├── gitbook/                 # Student tutorial (GitBook, root set by .gitbook.yaml)
 ├── docs/                    # Documentation
+├── .gitattributes           # Forces LF line endings (scripts run in Linux)
 ├── results/                 # JSON test reports (auto-generated)
 └── logs/                    # Detailed logs (auto-generated)
 ```
+
+## Documentation index
+
+| Document | Content |
+|----------|---------|
+| [STUDENT-GUIDE.md](STUDENT-GUIDE.md) | Host preparation, first run, results |
+| [TEACHER-GUIDE.md](TEACHER-GUIDE.md) | Pre-class validation, WSL test bench |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common errors and fixes |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Framework internals, runtime environment |
+| [WSL-PORTAGE.md](WSL-PORTAGE.md) | Port inventory, differences with Multipass, tested versions |
+| [WSL-PROPOSITIONS.md](WSL-PROPOSITIONS.md) | Out-of-scope improvements, bugs fixed |
 
 ## Modes / Modes d'exécution
 
@@ -65,7 +77,7 @@ incus-lab/
 | `--learn` | Mode étudiant: pauses, explications bilingues | Student mode: pauses, bilingual explanations |
 | `--lab NN` | Exécuter un seul lab | Run a single lab |
 | `--reset NN` | Nettoyer + réexécuter un lab | Clean + rerun a lab |
-| `--quick` | Sauter install/init si Incus déjà présent | Skip install/init if Incus present |
+| `--quick` | Sauter 00-04 si Incus déjà présent (jamais en validation officielle) | Skip 00-04 if Incus present (never for official validation) |
 | `--check-images` | Vérifier que les images existent dans les registres | Verify images exist in registries |
 | `--diff` | Comparer les 2 derniers rapports | Compare last 2 reports |
 | `--verbose` | Afficher toutes les sorties | Show all output |

@@ -22,9 +22,13 @@ Idées hors périmètre strict de la migration (classe D). Elles ont été **aut
 
 | # | Hypothèse | Constat |
 |---|---|---|
-| 6 | Lab 11 `/root/websrv_dir` contre nettoyage `${HOME}` | Tous les scripts utilisent `${HOME}/${ADV_STORAGE_DIR}` : cohérent. Seul `README.md` cite `/root/websrv_dir` (valeur de `${HOME}` sous `sudo`). |
+| 6 | Lab 11 `/root/websrv_dir` contre nettoyage `${HOME}` | Tous les scripts utilisent `${HOME}/${ADV_STORAGE_DIR}` : cohérent. `README.md` citait `/root/websrv_dir` (valeur de `${HOME}` sous `sudo`) ; corrigé en `$HOME/websrv_dir`. |
 
 ## Non traité
 
 - Hypothèse 10 : prérequis alignés dans la préparation de l'hôte.
-- Section `VM_*` de `config.env` (Multipass) : non retirée, décision de l'enseignant requise.
+
+## Fichiers retirés (autorisé par l'enseignant)
+
+- Répertoire `cloud-init/` (`user-data-fresh.yaml`, `user-data-ready.yaml`, `provision-multipass.sh`) : inutilisé sous WSL, remplacé par `wsl/provision-wsl.sh`.
+- Section `VM_*` de `config.env` (Multipass) : aucune référence dans les scripts.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # CR380 - Provisionnement de la distribution WSL de référence
-# Équivalent WSL de cloud-init/user-data-fresh.yaml (classe A).
+# Remplace le provisionnement Multipass/cloud-init retiré (classe A).
 #
 # S'exécute en root, DANS la distribution jetable cr380-*, appelé par
 # wsl/run-wsl-tests.ps1 -Prepare. Ne s'exécute jamais ailleurs.
@@ -21,7 +21,7 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Mêmes paquets que cloud-init/user-data-fresh.yaml
+# Paquets de base du lab
 apt-get update -y
 apt-get install -y git curl wget tree vim jq members ca-certificates gnupg \
     software-properties-common apt-transport-https bash-completion

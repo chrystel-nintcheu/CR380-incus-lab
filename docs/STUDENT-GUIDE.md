@@ -57,6 +57,15 @@ In `--learn` mode, the script:
 - Waits for you to press Enter before continuing
 - Shows the commands that will be executed
 
+## Spécificités WSL / WSL specifics
+
+| Situation | Ce qu'il faut faire / What to do |
+|-----------|----------------------------------|
+| Après `sudo adduser $USER incus-admin` (Lab 03) | Le groupe n'est actif qu'après une nouvelle session : `wsl --terminate Ubuntu-24.04` (PowerShell), puis rouvrez Ubuntu |
+| Ubuntu semble figé ou sans réseau | `wsl --shutdown` (PowerShell), puis rouvrez Ubuntu |
+| Accéder à un conteneur depuis Windows (Labs 08, 09, 11) | `http://localhost:8888`, `:8000` ou `:8001` dans le navigateur Windows |
+| Dépôt | Toujours dans `~/CR380-incus-lab`, jamais sous `/mnt/c` |
+
 ## Exécuter un seul lab / Run a single lab
 
 ```bash
@@ -107,10 +116,10 @@ When a test fails, look at:
 | 10 | Fichiers / Files | Transférer des fichiers host ↔ conteneur |
 | 11 | Stockage / Storage | Créer et utiliser un pool de stockage |
 | 12 | Volumes | Créer et attacher un volume persistant |
-| 99 | Nettoyage / Teardown | Tout supprimer et repartir à zéro |
+| 99 | Nettoyage / Teardown | Supprimer les ressources du lab (vos autres conteneurs sont conservés) |
 
 ## Besoin d'aide? / Need help?
 
-- Consultez le [Troubleshooting Guide](TROUBLESHOOTING.md)
+- Consultez le [Troubleshooting Guide](TROUBLESHOOTING.md) et le [Dépannage WSL](../gitbook/preparation-hote/depannage-wsl.md)
 - Lisez la [documentation Incus officielle](https://linuxcontainers.org/incus/docs/main/)
 - Demandez à votre enseignant / Ask your teacher

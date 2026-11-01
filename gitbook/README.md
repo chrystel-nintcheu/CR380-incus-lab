@@ -50,10 +50,26 @@ Before starting, make sure your machine meets these requirements:
 
 ## Structure du cours
 
-Le cours est divisé en trois grandes sections :
+Le cours est divisé en trois grandes sections, précédées de la préparation de l'hôte :
 
+0. **Préparation de l'hôte** (Lab 00) — Installer WSL 2 et Ubuntu 24.04, puis vérifier l'environnement.
 1. **Installation et configuration** (Labs 01–04) — Installer Incus, configurer les permissions, initialiser le stockage et le réseau.
 2. **Les flux Incus** (Labs 05–08) — Explorer les registres d'images, télécharger des images, lancer des conteneurs, exposer des ports.
 3. **La persistance** (Labs 09–12) — Créer des conteneurs d'application, transférer des fichiers, gérer le stockage et les volumes.
 
-Un lab de nettoyage (Lab 99) remet votre environnement dans son état initial.
+Un lab de nettoyage (Lab 99) supprime les ressources créées pendant les labs.
+
+## Où s'exécutent les labs
+
+```text
+Windows 10 / 11
+└── WSL 2 (noyau Linux + systemd)
+    └── Ubuntu 24.04 — dépôt dans ~/CR380-incus-lab
+        ├── ./run-labs.sh et tests/ (labs 00 à 99)
+        └── Incus (service systemd)
+            ├── pont cr380incusbr0
+            ├── pools cr380storagepool, websrv_storage
+            └── conteneurs u1, routerCT, nginxCT, appwebCT…
+                 ▲
+Navigateur Windows ─ http://localhost:8888 / 8000 / 8001 (proxy device, Labs 08, 09, 11)
+```
