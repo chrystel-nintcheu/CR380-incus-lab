@@ -25,3 +25,6 @@ index.nginx-debian.html
 
 # Sorties du banc d'essai WSL
 wsl/out/
+
+cr380-wsl-migrator.md
+cr380-wsl-maintainer.md
