@@ -158,17 +158,24 @@ We'll rename it to 'html.bkp' as a backup."
 et nous l'envoyons dans le conteneur pour remplacer le site web par défaut.
 
 Commande: git clone ${DEMO_APP_REPO} ${DEMO_APP_DIR}
+          git -C ${DEMO_APP_DIR} checkout ${DEMO_APP_REF}
           incus file push -r ${DEMO_APP_DIR} ${CT_NGINX}/var/www/" \
         "Now we clone the demo application repository and push it
 to the container to replace the default website.
 
 Command: git clone ${DEMO_APP_REPO} ${DEMO_APP_DIR}
+         git -C ${DEMO_APP_DIR} checkout ${DEMO_APP_REF}
          incus file push -r ${DEMO_APP_DIR} ${CT_NGINX}/var/www/"
 
     rm -rf "${work_dir}/${DEMO_APP_DIR}"
 
     run_cmd "Clone demo app repository" "${TIMEOUT_DOWNLOAD}" \
         git clone "${DEMO_APP_REPO}" "${work_dir}/${DEMO_APP_DIR}" || true
+
+    if (( CMD_EXIT_CODE == 0 )) && [[ -d "${work_dir}/${DEMO_APP_DIR}" ]]; then
+        run_cmd "Pin demo app to commit ${DEMO_APP_REF:0:7}" "${TIMEOUT_DEFAULT}" \
+            git -C "${work_dir}/${DEMO_APP_DIR}" checkout --quiet "${DEMO_APP_REF}" || true
+    fi
 
     if (( CMD_EXIT_CODE == 0 )) && [[ -d "${work_dir}/${DEMO_APP_DIR}" ]]; then
         pass "Demo app cloned to '${DEMO_APP_DIR}'"

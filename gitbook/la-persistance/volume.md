@@ -99,6 +99,7 @@ We clone the demo app directly into the volume directory so the container can se
 ```bash
 git clone https://github.com/nintcheu/dog-breed-recognition.git \
   ~/websrv_dir/custom/default_www_volume/html
+git -C ~/websrv_dir/custom/default_www_volume/html checkout 32a56e0baeb819a34e4ddacf700122c4db1c6fee
 ```
 
 ## Concept clé

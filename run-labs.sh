@@ -130,7 +130,7 @@ if [[ "${CHECK_IMAGES_ONLY}" == "true" ]]; then
     for img_var in IMAGE_UBUNTU IMAGE_ALPINE IMAGE_OPENWRT IMAGE_DEBIAN; do
         img_name="${!img_var}"
         echo -ne "  Checking ${img_name}... "
-        if timeout 30 incus image list "${img_name}" --format csv 2>/dev/null | grep -q .; then
+        if timeout 30 "${INCUS_RUN}" incus image list "${img_name}" --format csv 2>/dev/null | grep -q .; then
             echo -e "${GREEN}✓ available${NC}"
         else
             echo -e "${RED}✗ NOT FOUND${NC}"
@@ -255,6 +255,39 @@ fi
 # =============================================================================
 # RESET MODE / MODE RÉINITIALISATION
 # =============================================================================
+# FR: Supprimer les artefacts créés par un lab donné (mêmes noms que dans config.env)
+# EN: Remove the artifacts created by a given lab (same names as in config.env)
+reset_lab_artifacts() {
+    local lab="$1"
+    case "${lab}" in
+        06)
+            cleanup_image "${ALIAS_UBUNTU}"; cleanup_image "${ALIAS_ALPINE}"
+            cleanup_image "${ALIAS_OPENWRT}"; cleanup_image "${ALIAS_DEBIAN}" ;;
+        07)
+            cleanup_container "${CT_U1}"; cleanup_container "${CT_CLONE}"
+            cleanup_image "${IMG_CUSTOM_U1}" ;;
+        08)
+            cleanup_container "${CT_ROUTER}" ;;
+        09)
+            cleanup_container "${CT_DEBIAN}"; cleanup_container "${CT_NGINX}"
+            cleanup_image "${IMG_NGINX}" ;;
+        10)
+            cleanup_image "${IMG_DEMO_APP}"
+            rm -rf "${PROJECT_ROOT:?}/${DEMO_APP_DIR:?}" "${PROJECT_ROOT:?}/html" "${PROJECT_ROOT:?}/html.bkp" \
+                   "${PROJECT_ROOT}/index.html" "${PROJECT_ROOT}/index.nginx-debian.html" ;;
+        11)
+            cleanup_container "${CT_APPWEB}"
+            cleanup_volume "${ADV_STORAGE_POOL}" "${ADV_VOLUME}"
+            cleanup_storage "${ADV_STORAGE_POOL}"
+            rm -rf "${HOME:?}/${ADV_STORAGE_DIR:?}" ;;
+        12)
+            # Lab 12 réutilise le conteneur du lab 11 : on le garde, on détache seulement le volume
+            incus_run incus storage volume detach "${ADV_STORAGE_POOL}" "${ADV_VOLUME}" "${CT_APPWEB}" 2>/dev/null || true
+            cleanup_volume "${ADV_STORAGE_POOL}" "${ADV_VOLUME}" ;;
+        *)
+            log "RESET: no artifacts to clean for lab ${lab}" ;;
+    esac
+}
 if [[ -n "${RESET_LAB}" ]]; then
     target_file=""
     for test_file in "${ALL_TESTS[@]}"; do
@@ -268,6 +301,8 @@ if [[ -n "${RESET_LAB}" ]]; then
         exit 1
     fi
     echo -e "  ${DIM}Reset mode: cleaning up lab ${RESET_LAB} artifacts first...${NC}"
+    log "RESET: cleaning artifacts of lab ${RESET_LAB}"
+    reset_lab_artifacts "${RESET_LAB}"
     # Mark all previous tests as passed
     for test_file in "${ALL_TESTS[@]}"; do
         local_num="${test_file%%-*}"

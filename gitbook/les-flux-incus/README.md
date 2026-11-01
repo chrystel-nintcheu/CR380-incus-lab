@@ -26,6 +26,6 @@ Cette section couvre les concepts fondamentaux de l'écosystème Incus : registr
 | Image distante | Alias local | Utilisée dans |
 |----------------|-------------|---------------|
 | `images:ubuntu/noble/amd64` | `ubuntux64` | Labs 07+ |
-| `images:alpine/3.20` | `alpinex64` | Lab 06 (supprimée ensuite) |
-| `images:openwrt/23.05/amd64` | `openwrt23.05` | Lab 08 |
+| `images:alpine/3.22` | `alpinex64` | Lab 06 (supprimée ensuite) |
+| `images:openwrt/25.12/amd64` | `openwrt25.12` | Lab 08 |
 | `images:debian/12` | `debian12` | Lab 09+ |

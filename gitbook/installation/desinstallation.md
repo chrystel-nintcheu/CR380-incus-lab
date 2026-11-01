@@ -25,7 +25,15 @@ Incus is installed. We must first stop the service.
 {% endtabs %}
 
 ```bash
-sudo systemctl stop incus
+sudo systemctl stop incus incus.socket incus-user incus-user.socket incus-lxcfs incus-startup 2>/dev/null
+```
+
+Supprimons aussi les conteneurs et les images existants pour éviter les problèmes lors de la purge :
+
+```bash
+incus stop --all --force
+incus list --format csv -c n          # puis : incus delete --force <nom> pour chaque conteneur
+incus image list --format csv -c l    # puis : incus image delete <alias> pour chaque image
 ```
 
 ## Étape 2 : Purger les paquets
@@ -40,7 +48,7 @@ Now we purge incus packages with apt.
 {% endtabs %}
 
 ```bash
-sudo apt-get remove --purge -y incus incus-client incus-base
+sudo apt-get remove --purge -y incus
 sudo apt-get autoremove -y
 sudo apt-get clean
 ```
@@ -49,16 +57,18 @@ sudo apt-get clean
 
 {% tabs %}
 {% tab title="Français" %}
-Suppression des fichiers résiduels dans /var/lib/incus.
+Suppression des fichiers résiduels dans /var/lib/incus, du pont réseau `cr380incusbr0` s'il existe encore et, le cas échéant, du dépôt tiers Zabbly.
 {% endtab %}
 {% tab title="English" %}
-Removing leftover files in /var/lib/incus.
+Removing leftover files in /var/lib/incus, the `cr380incusbr0` network bridge if it still exists and, if present, the third-party Zabbly repository.
 {% endtab %}
 {% endtabs %}
 
 ```bash
-sudo rm -rf /var/lib/incus
-sudo rm -rf /var/log/incus
+sudo rm -rf /var/lib/incus*
+sudo ip link set cr380incusbr0 down 2>/dev/null
+sudo ip link delete cr380incusbr0 2>/dev/null
+sudo rm -f /etc/apt/sources.list.d/zabbly-incus-stable.sources /etc/apt/keyrings/zabbly.asc
 ```
 
 ## Étape 4 : Supprimer les groupes système

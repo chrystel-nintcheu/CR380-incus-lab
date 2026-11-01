@@ -19,7 +19,7 @@ vim config.env
 
 ### 2. Valider tous les labs / Validate all labs
 
-Exécutez la suite complète sur une VM propre:
+Exécutez la suite complète dans une distribution WSL neuve (voir « Poste de test WSL » ci-dessous) :
 
 ```bash
 sudo ./run-labs.sh --validate
@@ -40,29 +40,46 @@ sudo ./run-labs.sh --diff
 
 Ceci compare le dernier rapport avec le précédent pour détecter les régressions.
 
-## Provisionnement des VMs étudiantes / Student VM Provisioning
+## Poste de test WSL / WSL test bench
 
-### Option A: Multipass (sur l'ordinateur de l'étudiant)
+Les étudiants préparent leur poste avec `gitbook/preparation-hote/README.md`. Pour la validation officielle, utilisez toujours `--validate` complet (jamais `--quick`, qui marque les labs 00 à 04 comme réussis sans les exécuter).
 
-```bash
-# VM propre (labs à partir de zéro)
-./cloud-init/provision-multipass.sh --fresh
-
-# VM pré-configurée (labs avancés)
-./cloud-init/provision-multipass.sh --ready
+```mermaid
+flowchart LR
+    A["-Prepare<br/>(une fois)"] --> B[("cr380-base.tar<br/>Ubuntu 24.04 + student + systemd")]
+    B --> C["import → cr380-test<br/>(distribution neuve)"]
+    C --> D["copie du dépôt dans ~<br/>+ conversion CRLF → LF"]
+    D --> E["sudo ./run-labs.sh --validate"]
+    E --> F["rapports → wsl\out\…"]
+    F --> G["unregister cr380-test"]
+    G --> H{"0 échec<br/>0 ignoré ?"}
+    H -->|oui| I["code 0"]
+    H -->|non| J["code 1"]
 ```
 
-### Option B: Proxmox (VMs centralisées)
+### Valider les labs sur une distribution jetable (PowerShell)
 
-1. Créez un template Ubuntu 24.04 dans Proxmox
-2. Configurez cloud-init avec le contenu de `cloud-init/user-data-fresh.yaml`
-3. Clonez le template pour chaque étudiant
+```powershell
+# Une seule fois : crée l'état de référence (Ubuntu 24.04, utilisateur student, systemd)
+.\wsl\run-wsl-tests.ps1 -Prepare
+
+# À chaque validation : distribution neuve cr380-test, sudo ./run-labs.sh --validate, rapports dans wsl\out\
+.\wsl\run-wsl-tests.ps1
+```
+
+Le script ne touche qu'aux distributions dont le nom correspond à `^cr380-[a-z0-9-]+$` et
+retourne un code non nul au moindre échec ou test ignoré. Ne validez jamais avec `--quick`.
+Chaque campagne écrit dans `wsl\out\<nom>-<horodatage>\` : `environnement.txt` (Windows, `wsl --version`,
+noyau, Ubuntu, Incus), `run.log`, `results\` et `logs\`. Options : `-Name`, `-RunArgs`, `-Keep`
+(conserver la distribution pour diagnostiquer).
+
+Pour comparer deux campagnes, comparez les rapports JSON (`summary` et `tests`) des deux dossiers de `wsl\out\` : la distribution jetable est supprimée à la fin, donc `--diff` n'y voit qu'un seul rapport.
 
 ### Personnalisation
 
-- **SSH keys**: Ajoutez les clés SSH des étudiants dans les fichiers cloud-init
-- **Git repo URL**: Remplacez `CHANGE-ME` dans les fichiers cloud-init par l'URL réelle du dépôt
-- **Password**: Changez le mot de passe par défaut `cr380lab` dans les fichiers cloud-init
+- **Git repo URL**: la branche WSL est clonée avec `git clone -b wsl-version <url>`
+- **Mot de passe**: chaque étudiant crée son propre utilisateur Ubuntu au premier lancement
+- **Versions d'images et dépôt de démonstration** : `config.env` (`IMAGE_*`, `ALIAS_*`, `DEMO_APP_REF`)
 
 ## Correction rapide d'un lab / Quick lab fix
 
@@ -86,6 +103,8 @@ sudo ./run-labs.sh --reset 09  # Nettoie et réexécute uniquement le lab 09
 ```
 
 ## Calendrier recommandé / Recommended schedule
+
+Utilisation en classe (rythme du cours). `--quick` saute les labs 00 à 04 : à réserver à ce contexte, pas à la validation officielle.
 
 | Semaine | Labs | Commande de validation |
 |---------|------|----------------------|

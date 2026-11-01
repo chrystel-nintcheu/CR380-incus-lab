@@ -8,30 +8,39 @@ la suite de tests en mode interactif.
 This guide will help you set up your lab environment and use the test suite
 in interactive mode.
 
-## Configuration de la VM / VM Setup
+## Préparation de l'hôte / Host preparation
 
-### Option 1: Multipass (recommandé / recommended)
+Avant le Lab 00, préparez votre ordinateur Windows 10 ou 11 : installation de WSL 2,
+d'Ubuntu 24.04, vérification de systemd, puis clonage du dépôt dans `~`.
+La procédure pas à pas est dans `gitbook/preparation-hote/README.md`.
 
-```bash
-# Installer multipass / Install multipass
-sudo snap install multipass
+Before Lab 00, prepare your Windows 10 or 11 computer: install WSL 2 and
+Ubuntu 24.04, check systemd, then clone the repository into `~`.
+The step-by-step procedure is in `gitbook/preparation-hote/README.md`.
 
-# Lancer une VM propre / Launch a clean VM
-./cloud-init/provision-multipass.sh --fresh
+Résumé / Summary:
 
-# Se connecter / Connect
-multipass shell cr380-lab
+```powershell
+# PowerShell en administrateur / PowerShell as administrator
+wsl --install Ubuntu-24.04
+wsl -l -v          # VERSION doit être 2 / VERSION must be 2
+wsl --update
 ```
 
-### Option 2: VM Proxmox
+```bash
+# Dans Ubuntu / Inside Ubuntu
+cd ~
+git clone -b wsl-version https://github.com/chrystel-nintcheu/CR380-incus-lab.git
+cd CR380-incus-lab
+sudo ./run-labs.sh --lab 00
+```
 
-Votre enseignant vous fournira les identifiants de connexion.
-Your teacher will provide you with connection credentials.
+Ne placez jamais le dépôt sous `/mnt/c`. / Never put the repository under `/mnt/c`.
 
 ## Première exécution / First run
 
 ```bash
-cd ~/incus-lab
+cd ~/CR380-incus-lab
 
 # Mode interactif (recommandé pour la première fois)
 # Interactive mode (recommended for first time)
@@ -47,6 +56,15 @@ In `--learn` mode, the script:
 - Explains each step in French AND English
 - Waits for you to press Enter before continuing
 - Shows the commands that will be executed
+
+## Spécificités WSL / WSL specifics
+
+| Situation | Ce qu'il faut faire / What to do |
+|-----------|----------------------------------|
+| Après `sudo adduser $USER incus-admin` (Lab 03) | Le groupe n'est actif qu'après une nouvelle session : `wsl --terminate Ubuntu-24.04` (PowerShell), puis rouvrez Ubuntu |
+| Ubuntu semble figé ou sans réseau | `wsl --shutdown` (PowerShell), puis rouvrez Ubuntu |
+| Accéder à un conteneur depuis Windows (Labs 08, 09, 11) | `http://localhost:8888`, `:8000` ou `:8001` dans le navigateur Windows |
+| Dépôt | Toujours dans `~/CR380-incus-lab`, jamais sous `/mnt/c` |
 
 ## Exécuter un seul lab / Run a single lab
 
@@ -98,10 +116,10 @@ When a test fails, look at:
 | 10 | Fichiers / Files | Transférer des fichiers host ↔ conteneur |
 | 11 | Stockage / Storage | Créer et utiliser un pool de stockage |
 | 12 | Volumes | Créer et attacher un volume persistant |
-| 99 | Nettoyage / Teardown | Tout supprimer et repartir à zéro |
+| 99 | Nettoyage / Teardown | Supprimer les ressources du lab (vos autres conteneurs sont conservés) |
 
 ## Besoin d'aide? / Need help?
 
-- Consultez le [Troubleshooting Guide](TROUBLESHOOTING.md)
+- Consultez le [Troubleshooting Guide](TROUBLESHOOTING.md) et le [Dépannage WSL](../gitbook/preparation-hote/depannage-wsl.md)
 - Lisez la [documentation Incus officielle](https://linuxcontainers.org/incus/docs/main/)
 - Demandez à votre enseignant / Ask your teacher

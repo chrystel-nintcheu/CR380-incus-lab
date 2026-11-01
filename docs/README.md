@@ -21,10 +21,10 @@ sudo ./run-labs.sh --reset 09
 
 ## Requirements / Prérequis
 
-- Ubuntu 24.04 LTS (amd64)
+- Ubuntu 24.04 LTS (amd64) in WSL 2, on Windows 10 (build 19041+) or Windows 11 / dans WSL 2, sous Windows 10 ou 11 — see `gitbook/preparation-hote/README.md`
 - `sudo` access
 - Internet connection
-- 10 GB+ free disk space
+- 10 GB+ free disk space in Ubuntu / dans Ubuntu
 
 ## Project Structure / Structure du projet
 
@@ -34,7 +34,7 @@ incus-lab/
 ├── config.env               # Central configuration (images, timeouts, names)
 ├── tests/
 │   ├── _common.sh           # Test framework (assertions, logging, reports)
-│   ├── 00-preflight.sh      # Pre-flight checks (OS, sudo, internet, disk)
+│   ├── 00-preflight.sh      # Pre-flight checks (OS, WSL 2, systemd, sudo, internet, disk)
 │   ├── 01-uninstall.sh      # Complete Incus removal
 │   ├── 02-install.sh        # Incus installation via apt
 │   ├── 03-post-install.sh   # Post-install: user groups + permissions
@@ -47,15 +47,27 @@ incus-lab/
 │   ├── 10-file-transfer.sh  # File push/pull between host and containers
 │   ├── 11-storage.sh        # Storage pools
 │   ├── 12-volumes.sh        # Persistent volumes
-│   └── 99-teardown.sh       # Full cleanup
-├── cloud-init/
-│   ├── user-data-fresh.yaml       # Clean VM (no Incus)
-│   ├── user-data-ready.yaml       # Pre-configured VM (Incus ready)
-│   └── provision-multipass.sh     # Multipass launcher
+│   └── 99-teardown.sh       # Cleanup of the lab's own resources
+├── wsl/
+│   ├── run-wsl-tests.ps1    # WSL test bench (PowerShell, Windows side)
+│   └── provision-wsl.sh     # Reference distribution provisioning (runs in WSL)
+├── gitbook/                 # Student tutorial (GitBook, root set by .gitbook.yaml)
 ├── docs/                    # Documentation
+├── .gitattributes           # Forces LF line endings (scripts run in Linux)
 ├── results/                 # JSON test reports (auto-generated)
 └── logs/                    # Detailed logs (auto-generated)
 ```
+
+## Documentation index
+
+| Document | Content |
+|----------|---------|
+| [STUDENT-GUIDE.md](STUDENT-GUIDE.md) | Host preparation, first run, results |
+| [TEACHER-GUIDE.md](TEACHER-GUIDE.md) | Pre-class validation, WSL test bench |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common errors and fixes |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Framework internals, runtime environment |
+| [WSL-PORTAGE.md](WSL-PORTAGE.md) | Port inventory, differences with Multipass, tested versions |
+| [WSL-PROPOSITIONS.md](WSL-PROPOSITIONS.md) | Out-of-scope improvements, bugs fixed |
 
 ## Modes / Modes d'exécution
 
@@ -65,7 +77,7 @@ incus-lab/
 | `--learn` | Mode étudiant: pauses, explications bilingues | Student mode: pauses, bilingual explanations |
 | `--lab NN` | Exécuter un seul lab | Run a single lab |
 | `--reset NN` | Nettoyer + réexécuter un lab | Clean + rerun a lab |
-| `--quick` | Sauter install/init si Incus déjà présent | Skip install/init if Incus present |
+| `--quick` | Sauter 00-04 si Incus déjà présent (jamais en validation officielle) | Skip 00-04 if Incus present (never for official validation) |
 | `--check-images` | Vérifier que les images existent dans les registres | Verify images exist in registries |
 | `--diff` | Comparer les 2 derniers rapports | Compare last 2 reports |
 | `--verbose` | Afficher toutes les sorties | Show all output |

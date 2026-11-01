@@ -4,6 +4,11 @@
 
 * [Accueil — CR380 Labs Incus](README.md)
 
+## Préparation de l'hôte
+
+* [Préparation de l'hôte (Windows et WSL 2)](preparation-hote/README.md)
+* [Dépannage WSL](preparation-hote/depannage-wsl.md)
+
 ## Installation et configuration
 
 * [Vue d'ensemble](installation/README.md)

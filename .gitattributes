@@ -1,0 +1,6 @@
+# Les scripts et la configuration s'exécutent dans Linux (WSL) : toujours en LF.
+*.sh    text eol=lf
+*.env   text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.md    text eol=lf

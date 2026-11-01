@@ -10,7 +10,7 @@ Ce guide est généré à partir du dépôt [CR380-incus-lab](https://github.com
 
 | Lab | Titre | Section | Prérequis |
 |-----|-------|---------|-----------|
-| 00 | Vérifications préalables | — | Aucun |
+| 00 | Vérifications préalables | Préparation de l'hôte | Aucun |
 | 01 | Désinstallation | Installation et configuration | Lab 00 |
 | 02 | Installation | Installation et configuration | Lab 01 |
 | 03 | Après installation | Installation et configuration | Lab 02 |
@@ -31,29 +31,45 @@ Ce guide est généré à partir du dépôt [CR380-incus-lab](https://github.com
 {% tab title="Français" %}
 Avant de commencer, assurez-vous que votre machine répond à ces critères :
 
-- **OS** : Ubuntu 24.04 ou supérieur (amd64)
-- **Disque** : au moins 10 Go d'espace libre
+- **OS** : Ubuntu 24.04 (amd64) dans WSL 2, sur Windows 10 (build 19041 ou plus) ou Windows 11. Suivez d'abord la [Préparation de l'hôte](preparation-hote/README.md)
+- **Disque** : au moins 10 Go d'espace libre dans Ubuntu (20 Go libres sur `C:` recommandés)
 - **Internet** : accès à `linuxcontainers.org`
-- **Sudo** : accès sans mot de passe (ou mot de passe en cache)
-- **Outils** : `git`, `curl`, `jq` installés
+- **Sudo** : le mot de passe de votre utilisateur Ubuntu
+- **Outils** : `git`, `curl` et `wget` installés (`jq` facultatif)
 {% endtab %}
 {% tab title="English" %}
 Before starting, make sure your machine meets these requirements:
 
-- **OS**: Ubuntu 24.04 or later (amd64)
-- **Disk**: at least 10 GB free space
+- **OS**: Ubuntu 24.04 (amd64) in WSL 2, on Windows 10 (build 19041 or later) or Windows 11. Follow the [host preparation](preparation-hote/README.md) first
+- **Disk**: at least 10 GB free space in Ubuntu (20 GB free on `C:` recommended)
 - **Internet**: access to `linuxcontainers.org`
-- **Sudo**: passwordless or cached password
-- **Tools**: `git`, `curl`, `jq` installed
+- **Sudo**: your Ubuntu user password
+- **Tools**: `git`, `curl` and `wget` installed (`jq` optional)
 {% endtab %}
 {% endtabs %}
 
 ## Structure du cours
 
-Le cours est divisé en trois grandes sections :
+Le cours est divisé en trois grandes sections, précédées de la préparation de l'hôte :
 
+0. **Préparation de l'hôte** (Lab 00) — Installer WSL 2 et Ubuntu 24.04, puis vérifier l'environnement.
 1. **Installation et configuration** (Labs 01–04) — Installer Incus, configurer les permissions, initialiser le stockage et le réseau.
 2. **Les flux Incus** (Labs 05–08) — Explorer les registres d'images, télécharger des images, lancer des conteneurs, exposer des ports.
 3. **La persistance** (Labs 09–12) — Créer des conteneurs d'application, transférer des fichiers, gérer le stockage et les volumes.
 
-Un lab de nettoyage (Lab 99) remet votre environnement dans son état initial.
+Un lab de nettoyage (Lab 99) supprime les ressources créées pendant les labs.
+
+## Où s'exécutent les labs
+
+```text
+Windows 10 / 11
+└── WSL 2 (noyau Linux + systemd)
+    └── Ubuntu 24.04 — dépôt dans ~/CR380-incus-lab
+        ├── ./run-labs.sh et tests/ (labs 00 à 99)
+        └── Incus (service systemd)
+            ├── pont cr380incusbr0
+            ├── pools cr380storagepool, websrv_storage
+            └── conteneurs u1, routerCT, nginxCT, appwebCT…
+                 ▲
+Navigateur Windows ─ http://localhost:8888 / 8000 / 8001 (proxy device, Labs 08, 09, 11)
+```

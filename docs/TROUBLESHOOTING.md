@@ -69,14 +69,16 @@ User is not in the `incus-admin` group.
 # Ajouter l'utilisateur au groupe / Add user to group
 sudo adduser $USER incus-admin
 
-# IMPORTANT: Déconnectez-vous et reconnectez-vous pour rafraîchir les groupes
-# IMPORTANT: Log out and log back in to refresh groups
-exit
-# reconnectez-vous / reconnect
+# IMPORTANT: la session doit être renouvelée. Sous WSL, dans PowerShell :
+# IMPORTANT: the session must be renewed. Under WSL, in PowerShell:
+#   wsl --terminate Ubuntu-24.04
+# puis rouvrez Ubuntu / then reopen Ubuntu
 
 # Vérifier / Verify
 groups | grep incus-admin
 ```
+
+Sans attendre, `sg incus-admin -c "incus list"` fonctionne dans la session courante.
 
 ---
 
@@ -159,9 +161,10 @@ sudo ./run-labs.sh --lab 04
 
 ---
 
-### 10. VM has less than 10GB free disk space
+### 10. Less than 10 GB free disk space
 
-**Cause**: The VM disk is too small or is full.
+**Cause**: Le disque virtuel (VHDX) de la distribution WSL est plein, ou `C:` n'a plus de place (le VHDX grandit avec les images et conteneurs).
+The WSL distribution's virtual disk is full, or `C:` is running out of space (the VHDX grows with images and containers).
 
 **Solution**:
 ```bash
@@ -232,8 +235,8 @@ If no solution works, contact your teacher with:
 
 1. Le log complet (`logs/test-*.log`)
 2. La sortie de la commande qui échoue
-3. La version d'Ubuntu (`lsb_release -a`)
-4. L'espace disque disponible (`df -h /`)
+3. La version d'Ubuntu (`lsb_release -a`) et, depuis PowerShell, `wsl --version` et `wsl -l -v`
+4. L'espace disque disponible (`df -h /`) et la version de Windows (`winver`)
 
 ---
 
@@ -278,3 +281,88 @@ This is normal and handled by the test framework. If you see this error manually
 # Le conteneur est déjà en cours d'exécution / Container is already running
 incus list <container-name>
 ```
+
+---
+
+## Problèmes propres à WSL / WSL-specific issues
+
+Les contrôles du Lab 00 (`sudo ./run-labs.sh --lab 00`) détectent la plupart de ces cas et affichent un **HINT**. Voir aussi [Dépannage WSL](../gitbook/preparation-hote/depannage-wsl.md).
+Lab 00 (`sudo ./run-labs.sh --lab 00`) detects most of these cases and prints a **HINT**.
+
+### 16. `WSL: WSL 1 détecté` ou `environnement non WSL détecté`
+
+**Cause**: La distribution tourne sous WSL 1 (pas de vrai noyau Linux) ou le lab est lancé hors de WSL.
+The distribution runs on WSL 1 (no real Linux kernel) or the lab is run outside WSL.
+
+**Solution** (PowerShell):
+```powershell
+wsl -l -v                              # VERSION doit être 2 / must be 2
+wsl --set-version Ubuntu-24.04 2
+```
+
+---
+
+### 17. `systemd: non actif`
+
+**Cause**: systemd n'est pas activé dans la distribution. Incus est un service systemd.
+systemd is not enabled. Incus is a systemd service.
+
+**Solution**:
+```bash
+# /etc/wsl.conf doit contenir / must contain:
+#   [boot]
+#   systemd=true
+sudo nano /etc/wsl.conf
+```
+Puis, dans PowerShell : `wsl --shutdown`, et rouvrez Ubuntu. / Then in PowerShell: `wsl --shutdown`, and reopen Ubuntu.
+
+---
+
+### 18. `Dépôt: ... est sur le disque Windows`
+
+**Cause**: Le dépôt est sous `/mnt/c/...`. Permissions, fins de ligne et vitesse d'accès y diffèrent.
+The repository is under `/mnt/c/...`.
+
+**Solution**:
+```bash
+cd ~
+git clone -b wsl-version https://github.com/chrystel-nintcheu/CR380-incus-lab.git
+cd CR380-incus-lab
+```
+
+---
+
+### 19. `/usr/bin/env: 'bash\r': No such file or directory`
+
+**Cause**: Fins de ligne Windows (CRLF), par exemple après un téléchargement ZIP. Le dépôt cloné depuis Ubuntu les force en LF (`.gitattributes`).
+Windows line endings (CRLF), e.g. after a ZIP download. A clone made from Ubuntu forces LF.
+
+**Solution**: Reclonez le dépôt depuis Ubuntu (voir #18). / Clone the repository again from Ubuntu (see #18).
+
+---
+
+### 20. Les conteneurs n'ont ni Internet ni DNS / Containers have no Internet or DNS
+
+**Cause**: Docker (ou un pare-feu) actif dans la même distribution modifie les règles réseau; le Lab 00 affiche un avertissement « Docker détecté ». Le DNS de WSL peut aussi être à relancer.
+Docker (or a firewall) active in the same distribution changes network rules; Lab 00 prints a "Docker détecté" warning. WSL DNS may also need a restart.
+
+**Solution**:
+```bash
+sudo systemctl disable --now docker      # si Docker est présent / if Docker is present
+getent hosts images.linuxcontainers.org  # doit répondre / must answer
+```
+Si le DNS ne répond pas : `wsl --shutdown` (PowerShell), puis rouvrez Ubuntu. / If DNS does not answer: `wsl --shutdown` (PowerShell), then reopen Ubuntu.
+
+---
+
+### 21. Un port exposé n'est pas joignable depuis Windows / Exposed port not reachable from Windows
+
+**Cause**: Le `proxy device` n'existe pas, ou le mode réseau de WSL n'est pas le mode NAT par défaut (le mode `mirrored` n'a pas été testé).
+The proxy device is missing, or WSL networking is not the default NAT mode (`mirrored` mode was not tested).
+
+**Solution**:
+```bash
+incus config show nginxCT | grep -A4 monport80vers8000   # le device existe-t-il ? / does the device exist?
+curl -s http://localhost:8000 | head -3                   # depuis Ubuntu / from Ubuntu
+```
+Depuis PowerShell : `curl.exe http://localhost:8000`. Ports du lab : 8888 (`routerCT`), 8000 (`nginxCT`), 8001 (`appwebCT`).

@@ -29,7 +29,7 @@ OpenWRT is a router OS with a web interface on port 80.
 {% endtabs %}
 
 ```bash
-incus launch openwrt23.05 routerCT
+incus launch openwrt25.12 routerCT
 ```
 
 ## Étape 2 : Ajouter un proxy device
@@ -72,6 +72,10 @@ You should see the OpenWRT web page (LuCI).
 ```bash
 curl -sL --max-time 15 http://localhost:8888
 ```
+
+{% hint style="info" %}
+**Sous WSL** : le même port est aussi joignable depuis Windows (mode réseau NAT par défaut de WSL). Dans **PowerShell** : `curl.exe http://localhost:8888`, ou ouvrez `http://localhost:8888` dans votre navigateur Windows.
+{% endhint %}
 
 ## Étape 5 : Retirer le proxy device
 
